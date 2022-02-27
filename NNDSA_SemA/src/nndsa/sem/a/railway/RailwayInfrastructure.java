@@ -80,9 +80,18 @@ public class RailwayInfrastructure {
             infrastructure.deleteEdge(
                     RailwayDirectionType.BACK.getPrefix().concat(keyDestination),
                     RailwayDirectionType.BACK.getPrefix().concat(keyStart));
+            
         } catch (Exception ex) {
             throw new IllegalArgumentException(ErrorMessage.doesNotExist);
         }
+
+        infrastructure.deleteEdgeIfExists(
+                RailwayDirectionType.THERE.getPrefix().concat(keyStart),
+                RailwayDirectionType.BACK.getPrefix().concat(keyDestination));            
+
+        infrastructure.deleteEdgeIfExists(
+                RailwayDirectionType.BACK.getPrefix().concat(keyStart),
+                RailwayDirectionType.THERE.getPrefix().concat(keyDestination));
     }
 
     public Railway getRailway(String key, RailwayDirectionType direction) {

@@ -14,7 +14,7 @@ public class Graph<KN, N> implements IGraph<KN, N> {
 
     private final HashMap<KN, Node> nodes;
     private int nodeCounter;
-    
+
     public Graph() {
         nodes = new HashMap<>();
         nodeCounter = 0;
@@ -22,23 +22,26 @@ public class Graph<KN, N> implements IGraph<KN, N> {
 
     @Override
     public void addEdge(KN start, KN destination) {
-        if (start == null || destination == null)
+        if (start == null || destination == null) {
             throw new IllegalArgumentException();
+        }
 
         Node startNode = nodes.get(start);
         Node destinationNode = nodes.get(destination);
-        if(startNode == null || destinationNode == null)
+        if (startNode == null || destinationNode == null) {
             throw new IllegalArgumentException("Unknown node!");
-        
+        }
+
         Edge edge = new Edge(destinationNode);
         startNode.adjacentEdges.add(edge);
     }
 
     @Override
     public void addNode(KN key, N data) {
-        if (key == null || data == null)
+        if (key == null || data == null) {
             throw new IllegalArgumentException("Unknown node!");
-        
+        }
+
         Node node = new Node(key, data);
         nodes.put(key, node);
         ++nodeCounter;
@@ -47,17 +50,35 @@ public class Graph<KN, N> implements IGraph<KN, N> {
     @Override
     public void deleteEdge(KN start, KN destination) {
         Node node = getNode(start);
-        
+
+        int idEdge = getEdgeIndex(node, destination);
+        if (idEdge == node.adjacentEdges.size()) {
+            throw new IllegalArgumentException("Destination node not found!");
+        }
+
+        node.adjacentEdges.remove(idEdge);
+    }
+
+    @Override
+    public void deleteEdgeIfExists(KN start, KN destination) {
+        Node node = getNode(start);
+
+        int idEdge = getEdgeIndex(node, destination);
+        if (idEdge == node.adjacentEdges.size()) {
+            return;
+        }
+
+        node.adjacentEdges.remove(idEdge);
+    }
+
+    private int getEdgeIndex(Node node, KN destination) {
         int idEdge = 0;
         for (; idEdge < node.adjacentEdges.size(); ++idEdge) {
-            if (node.adjacentEdges.get(idEdge).nextNode.key == destination)
+            if (node.adjacentEdges.get(idEdge).nextNode.key == destination) {
                 break;
+            }
         }
-        
-        if (idEdge==node.adjacentEdges.size())
-            throw new IllegalArgumentException("Destination node not found!");
-        
-        node.adjacentEdges.remove(idEdge);
+        return idEdge;
     }
 
     @Override
@@ -67,14 +88,15 @@ public class Graph<KN, N> implements IGraph<KN, N> {
             List<Edge> indexList = new LinkedList<>();
             for (int i = 0; i < node.adjacentEdges.size(); i++) {
                 Edge edge = node.adjacentEdges.get(i);
-                if(edge.nextNode.key.equals(keyNode))
-                    indexList.add(edge);    
+                if (edge.nextNode.key.equals(keyNode)) {
+                    indexList.add(edge);
+                }
             }
-            node.adjacentEdges.removeAll(indexList);    
+            node.adjacentEdges.removeAll(indexList);
         });
         --nodeCounter;
     }
-    
+
     @Override
     public N getNodeData(KN key) {
         Node node = getNode(key);
@@ -90,27 +112,29 @@ public class Graph<KN, N> implements IGraph<KN, N> {
         });
         return keyNodes;
     }
-    
+
     @Override
     public List<KN> getAllNodeKeys() {
         return new LinkedList<>(nodes.keySet());
     }
-    
+
     @Override
     public int getNodeCounter() {
         return nodeCounter;
     }
-    
+
     private Node getNode(KN key) {
         Node node = nodes.get(key);
-        
-        if (node==null)
+
+        if (node == null) {
             throw new IllegalArgumentException("Key of node not found!");
-        
+        }
+
         return node;
     }
 
     private class Node {
+
         KN key;
         N data;
         List<Edge> adjacentEdges;
@@ -123,6 +147,7 @@ public class Graph<KN, N> implements IGraph<KN, N> {
     }
 
     private class Edge {
+
         Node nextNode;
 
         public Edge(Node nextNode) {
