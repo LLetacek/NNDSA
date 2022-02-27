@@ -20,7 +20,7 @@ public class Railway {
         return length;
     }
     
-    public int getSize() {
+    public int getSpace() {
         return length - occupancy;
     }
 
@@ -51,6 +51,6 @@ public class Railway {
     }
     
     public boolean isTrainAllowedToStop(int trainLength) {
-        return getSize() >= trainLength && type.isAllowedToStop();
+        return getSpace() >= trainLength && type.isAllowedToStop();
     }
 }

@@ -88,7 +88,7 @@ public class RailwayInfrastructure {
     public Railway getRailway(String key, RailwayDirectionType direction) {
         return infrastructure.getNodeData(direction.getPrefix().concat(key));
     }
-    
+
     public void setOccupancy(String key, int length) {
         getRailway(key, RailwayDirectionType.THERE).setOccupancy(length);
         getRailway(key, RailwayDirectionType.BACK).setOccupancy(length);
@@ -117,17 +117,22 @@ public class RailwayInfrastructure {
         return new LinkedList<>(uniqueKeys);
     }
 
-    public int getShortestDistance(String keyStart, String keyDestination, RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
+    public int getShortestDistance(String keyStart, String keyDestination,
+            RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
+
         return getShortestPathByNode(keyStart, keyDestination, trainDirectionStart, trainDirectionEnd, lengthOfTrain).distance + lengthOfTrain;
     }
 
-    private Node getShortestPathByNode(String keyStart, String keyDestination, RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
+    private Node getShortestPathByNode(String keyStart, String keyDestination,
+            RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
+
         Railway startPosition = infrastructure.getNodeData(trainDirectionStart.getPrefix().concat(keyStart));
         Railway endPosition = infrastructure.getNodeData(trainDirectionEnd.getPrefix().concat(keyDestination));
-        
-        if(endPosition.getSize() < lengthOfTrain || startPosition.getSize() < lengthOfTrain)
+
+        if (endPosition.getSpace() < lengthOfTrain || startPosition.getSpace() < lengthOfTrain) {
             throw new IllegalArgumentException("The train is too big!");
-        
+        }
+
         HashMap<String, Node> map = new HashMap<>();
         Queue<String> keys = new LinkedList<>();
         insertAllRailwaysFromStartToNodes(map, keys, startPosition);
@@ -135,13 +140,16 @@ public class RailwayInfrastructure {
         recalculateDistance(keys, map, lengthOfTrain, startPosition);
 
         Node end = map.get(trainDirectionEnd.getPrefix().concat(keyDestination));
-        if (!end.railway.getKey().equals(endPosition.getKey()) ||
-                end.previous == null)
+        if (!end.railway.getKey().equals(endPosition.getKey())
+                || end.previous == null) {
             throw new IllegalArgumentException("Path does not exist!");
+        }
         return end;
     }
 
-    public List<Railway> getShortestPath(String keyStart, String keyDestination, RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
+    public List<Railway> getShortestPath(String keyStart, String keyDestination,
+            RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
+
         Node tmp = getShortestPathByNode(keyStart, keyDestination, trainDirectionStart, trainDirectionEnd, lengthOfTrain);
         List<Railway> path = new LinkedList<>();
         String realKeyStart = trainDirectionStart.getPrefix().concat(keyStart);
@@ -153,9 +161,7 @@ public class RailwayInfrastructure {
             } else if (firstIteration && realKeyStart.equals(tmp.railway.getKey())) {
                 firstIteration = false;
             }
-            
-            //System.out.println(tmp.railway.getKey() + " " + tmp.distance);
-            
+
             tmp = tmp.previous;
         }
         return path;
@@ -166,14 +172,16 @@ public class RailwayInfrastructure {
         while (!keys.isEmpty()) {
             Node node = map.get(keys.poll());
             node.visited = true;
-            Queue<String> adjencyNodes = new LinkedList<>(infrastructure.getAdjencyNodeKeys(node.railway.getKey()));
+            Queue<String> adjencyNodes = new LinkedList<>(
+                    infrastructure.getAdjencyNodeKeys(node.railway.getKey()));
 
             while (!adjencyNodes.isEmpty()) {
                 Node neighbor = map.get(adjencyNodes.poll());
                 int newDistance = node.distance;
-                
+
                 if (neighbor.railway.getDirection() == node.railway.getDirection()) {
-                    if (node.railway.isOccupied() && !node.railway.getKey().equals(startPosition.getKey())) {
+                    if (node.railway.isOccupied()
+                            && !node.railway.getKey().equals(startPosition.getKey())) {
                         // recalculating only the reverse edges
                         continue;
                     }
@@ -181,10 +189,10 @@ public class RailwayInfrastructure {
                     // full cost of node length
                     newDistance += (node.railway != startPosition) ? node.railway.getLength() : 0;
                 } else {
-                    // if train is allowedToStop, you can use reverse - occupied
-                    if (!node.railway.isTrainAllowedToStop(lengthOfTrain) || 
-                            ( node.railway.getKey().equals(startPosition.getKey()) && 
-                              node.railway.isOccupied() ) ) {
+                    // if train is allowedToStop, you can use reverse
+                    if (!node.railway.isTrainAllowedToStop(lengthOfTrain)
+                            || (node.railway.getKey().equals(startPosition.getKey())
+                            && node.railway.isOccupied())) {
                         continue;
                     }
 
