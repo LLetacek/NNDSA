@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import nndsa.sem.a.util.ErrorMessage;
@@ -143,8 +144,15 @@ public class RailwayInfrastructure {
         }
 
         HashMap<String, Node> map = new HashMap<>();
-        Queue<String> keys = new LinkedList<>();
-        insertAllRailwaysFromStartToNodes(map, keys, startPosition);
+        PriorityQueue<Node> keys = new PriorityQueue<>((a, b) -> {
+            if(a.distance < b.distance)
+                return -1;
+            else if (a.distance > b.distance)
+                return 1;
+            else
+                return 0;
+        });
+        insertAllRailwaysFromStartToNodes(map, startPosition);
 
         recalculateDistance(keys, map, lengthOfTrain, startPosition);
 
@@ -176,10 +184,10 @@ public class RailwayInfrastructure {
         return path;
     }
 
-    private void recalculateDistance(Queue<String> keys, HashMap<String, Node> map, int lengthOfTrain, Railway startPosition) {
-        keys.add(startPosition.getKey());
+    private void recalculateDistance(PriorityQueue<Node> keys, HashMap<String, Node> map, int lengthOfTrain, Railway startPosition) {
+        keys.add(map.get(startPosition.getKey()));
         while (!keys.isEmpty()) {
-            Node node = map.get(keys.poll());
+            Node node = keys.poll();
             node.visited = true;
             Queue<String> adjencyNodes = new LinkedList<>(
                     infrastructure.getAdjencyNodeKeys(node.railway.getKey()));
@@ -210,7 +218,7 @@ public class RailwayInfrastructure {
                 }
 
                 if (!neighbor.visited) {
-                    keys.add(neighbor.railway.getKey());
+                    keys.add(neighbor);
                 }
 
                 if (neighbor.distance > newDistance || neighbor.railway == startPosition) {
@@ -221,7 +229,7 @@ public class RailwayInfrastructure {
         }
     }
 
-    private void insertAllRailwaysFromStartToNodes(HashMap<String, Node> map, Queue<String> keys, Railway startPosition) {
+    private void insertAllRailwaysFromStartToNodes(HashMap<String, Node> map, Railway startPosition) {
         map.put(startPosition.getKey(), new Node(0, startPosition, null));
         infrastructure.getAllNodeKeys().forEach((key) -> {
             if (!startPosition.getKey().equals(key)) {
