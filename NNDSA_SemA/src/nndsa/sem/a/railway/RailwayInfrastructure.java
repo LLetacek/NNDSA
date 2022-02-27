@@ -65,6 +65,23 @@ public class RailwayInfrastructure {
 
     public void deleteRailway(String key) {
         try {
+            for (String neighbor : infrastructure.getAllNodeKeys()) {
+                infrastructure.deleteEdgeIfExists(
+                        RailwayDirectionType.THERE.getPrefix().concat(neighbor),
+                        RailwayDirectionType.BACK.getPrefix().concat(key));
+
+                infrastructure.deleteEdgeIfExists(
+                        RailwayDirectionType.BACK.getPrefix().concat(neighbor),
+                        RailwayDirectionType.THERE.getPrefix().concat(key));
+
+                infrastructure.deleteEdgeIfExists(
+                        RailwayDirectionType.THERE.getPrefix().concat(neighbor),
+                        RailwayDirectionType.THERE.getPrefix().concat(key));
+
+                infrastructure.deleteEdgeIfExists(
+                        RailwayDirectionType.BACK.getPrefix().concat(neighbor),
+                        RailwayDirectionType.BACK.getPrefix().concat(key));
+            }
             infrastructure.deleteNode(RailwayDirectionType.THERE.getPrefix().concat(key));
             infrastructure.deleteNode(RailwayDirectionType.BACK.getPrefix().concat(key));
         } catch (Exception ex) {
@@ -80,14 +97,14 @@ public class RailwayInfrastructure {
             infrastructure.deleteEdge(
                     RailwayDirectionType.BACK.getPrefix().concat(keyDestination),
                     RailwayDirectionType.BACK.getPrefix().concat(keyStart));
-            
+
         } catch (Exception ex) {
             throw new IllegalArgumentException(ErrorMessage.doesNotExist);
         }
 
         infrastructure.deleteEdgeIfExists(
                 RailwayDirectionType.THERE.getPrefix().concat(keyStart),
-                RailwayDirectionType.BACK.getPrefix().concat(keyDestination));            
+                RailwayDirectionType.BACK.getPrefix().concat(keyDestination));
 
         infrastructure.deleteEdgeIfExists(
                 RailwayDirectionType.BACK.getPrefix().concat(keyStart),
