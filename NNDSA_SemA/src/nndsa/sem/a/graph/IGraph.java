@@ -12,4 +12,5 @@ public interface IGraph<KN, N> {
     public List<KN> getAdjencyNodeKeys(KN key);
     public List<KN> getAllNodeKeys();
     public int getNodeCounter();
+    public void clear();
 }

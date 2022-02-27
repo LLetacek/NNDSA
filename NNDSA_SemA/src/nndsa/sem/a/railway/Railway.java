@@ -20,6 +20,10 @@ public class Railway {
         return length;
     }
     
+    public int getOccupancy() {
+        return occupancy;
+    }
+    
     public int getSpace() {
         return length - occupancy;
     }

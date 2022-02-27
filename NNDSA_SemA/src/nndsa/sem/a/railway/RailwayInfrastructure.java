@@ -19,6 +19,22 @@ public class RailwayInfrastructure {
         infrastructure = new Graph<>();
     }
 
+    public void addSimpleRailway(SimpleRailway simpleRailway) {
+        Railway railway = new Railway(
+                simpleRailway.getKey(), simpleRailway.getLength(), 
+                simpleRailway.getDirection(), simpleRailway.getType(), 
+                simpleRailway.getOccupancy());
+        infrastructure.addNode(railway.getKey(), railway);
+    }
+    
+    public void addSimpleConnection(String keyStart, RailwayDirectionType typeStart, 
+            String keyDestination, RailwayDirectionType typeDestination) {
+
+        keyStart = typeStart.getPrefix().concat(keyStart);
+        keyDestination = typeDestination.getPrefix().concat(keyDestination);
+        infrastructure.addEdge(keyStart, keyDestination);
+    }
+    
     public void addRailway(String key, int length, RailwayTrackType type) {
         addRailway(key, length, type, 0);
     }
@@ -26,10 +42,10 @@ public class RailwayInfrastructure {
     public void addRailway(String key, int length, RailwayTrackType type, int occupancy) {
         Railway railwayThere = new Railway(key, length, RailwayDirectionType.THERE, type, occupancy);
         Railway railwayBack = new Railway(key, length, RailwayDirectionType.BACK, type, occupancy);
-        infrastructure.addNode(RailwayDirectionType.THERE.getPrefix().concat(key), railwayThere);
-        infrastructure.addNode(RailwayDirectionType.BACK.getPrefix().concat(key), railwayBack);
+        infrastructure.addNode(railwayThere.getKey(), railwayThere);
+        infrastructure.addNode(railwayBack.getKey(), railwayBack);
     }
-
+    
     public void addConnection(String keyStart, String keyDestination) {
         String keyStartThere = RailwayDirectionType.THERE.getPrefix().concat(keyStart);
         String keyDestinationThere = RailwayDirectionType.THERE.getPrefix().concat(keyDestination);
@@ -122,7 +138,7 @@ public class RailwayInfrastructure {
     private List<String> getUniqueKeysWithoutPrefix(List<String> list) {
         Set<String> uniqueKeys = new LinkedHashSet<>();
         for (int i = 0; i < list.size(); i++) {
-            uniqueKeys.add(list.get(i).substring(1));
+            uniqueKeys.add(list.get(i).substring(RailwayDirectionType.THERE.getPrefix().length()));
         }
         return new LinkedList<>(uniqueKeys);
     }
@@ -236,6 +252,21 @@ public class RailwayInfrastructure {
                 map.put(key, new Node(Integer.MAX_VALUE, infrastructure.getNodeData(key), null));
             }
         });
+    }
+    
+    public void clear() {
+        infrastructure.clear();
+    }
+
+    public List<SimpleRailway> getSimpleRailwayList() {
+        List<String> keys = infrastructure.getAllNodeKeys();
+        List<SimpleRailway> railwayInfrastructure = new LinkedList<>();
+                        
+        keys.forEach((key) -> {
+            railwayInfrastructure.add(new SimpleRailway(infrastructure.getNodeData(key), infrastructure.getAdjencyNodeKeys(key)));
+        });
+        
+        return railwayInfrastructure;
     }
 
     private class Node {
