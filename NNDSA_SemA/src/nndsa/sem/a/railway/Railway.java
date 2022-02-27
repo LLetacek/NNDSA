@@ -16,11 +16,17 @@ public class Railway {
         this.occupancy = occupancy;
     }
 
-    public int getSpace() {
+    public int getLength() {
+        return length;
+    }
+    
+    public int getSize() {
         return length - occupancy;
     }
 
     public void setLength(int length) {
+        if(length < 0)
+            throw new IllegalArgumentException("Length must be greater than or equal to 0!");
         this.length = length;
     }
 
@@ -44,4 +50,7 @@ public class Railway {
         this.occupancy = occupancy;
     }
     
+    public boolean isTrainAllowedToStop(int trainLength) {
+        return getSize() >= trainLength && type.isAllowedToStop();
+    }
 }

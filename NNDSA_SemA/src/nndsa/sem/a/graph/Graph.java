@@ -13,9 +13,11 @@ import java.util.List;
 public class Graph<KN, N> implements IGraph<KN, N> {
 
     private final HashMap<KN, Node> nodes;
-
+    private int nodeCounter;
+    
     public Graph() {
         nodes = new HashMap<>();
+        nodeCounter = 0;
     }
 
     @Override
@@ -39,6 +41,7 @@ public class Graph<KN, N> implements IGraph<KN, N> {
         
         Node node = new Node(key, data);
         nodes.put(key, node);
+        ++nodeCounter;
     }
 
     @Override
@@ -69,6 +72,7 @@ public class Graph<KN, N> implements IGraph<KN, N> {
             }
             node.adjacentEdges.removeAll(indexList);    
         });
+        --nodeCounter;
     }
     
     @Override
@@ -90,6 +94,11 @@ public class Graph<KN, N> implements IGraph<KN, N> {
     @Override
     public List<KN> getAllNodeKeys() {
         return new LinkedList<>(nodes.keySet());
+    }
+    
+    @Override
+    public int getNodeCounter() {
+        return nodeCounter;
     }
     
     private Node getNode(KN key) {

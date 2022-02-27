@@ -1,8 +1,8 @@
 package nndsa.sem.a.railway;
 
 public enum RailwayDirectionType {
-    THERE("1"),
-    BACK("2");
+    THERE("2"),
+    BACK("1");
     
     private final String prefix;
     
