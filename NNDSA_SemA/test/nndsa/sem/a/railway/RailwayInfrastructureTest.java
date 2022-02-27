@@ -229,7 +229,6 @@ public class RailwayInfrastructureTest {
         instance.setOccupancy("v4", 20);
         
         int distance = instance.getShortestDistance("v10", "v4", RailwayDirectionType.BACK, RailwayDirectionType.THERE, 20);
-        instance.getShortestPath("v10", "v4", RailwayDirectionType.BACK, RailwayDirectionType.THERE, 20);
         assertEquals(1655, distance);
     }
     
