@@ -19,5 +19,6 @@ public class Serialization {
         pw.close();
     }
     
-    /* TODO loadFromCSV*/
+    public static void loadFromCSV(String fileBase, RailwayInfrastructure infrastructure) throws FileNotFoundException, UnsupportedEncodingException {
+    }
 }

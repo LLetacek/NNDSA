@@ -21,12 +21,19 @@ public class SimpleRailway {
         this.occupancy = occupancy;
     }
     
+    public SimpleRailway(Railway railway) {
+        this(railway, null);
+    }
+    
     public SimpleRailway(Railway railway, List<String> keyAdjencyRailways) {
         this.direction = railway.getDirection();
         this.key = railway.getKey().substring(direction.getPrefix().length());
         this.length = railway.getLength();
         this.type = railway.getType();
         this.occupancy = railway.getOccupancy();
+        
+        if (keyAdjencyRailways==null)
+            return;
         
         keyAdjencyRailways.forEach((key) -> {
             adjencyRailways.add(new Pair<>(key.substring(direction.getPrefix().length()),key.substring(0, direction.getPrefix().length())));

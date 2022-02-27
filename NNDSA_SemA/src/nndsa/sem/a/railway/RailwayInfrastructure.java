@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import javafx.util.Pair;
 import nndsa.sem.a.util.ErrorMessage;
 import nndsa.sem.a.graph.Graph;
 import nndsa.sem.a.graph.IGraph;
@@ -180,15 +181,15 @@ public class RailwayInfrastructure {
         return end;
     }
 
-    public List<Railway> getShortestPath(String keyStart, String keyDestination,
+    public List<Pair<SimpleRailway, Integer>> getShortestPath(String keyStart, String keyDestination,
             RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
 
         Node tmp = getShortestPathByNode(keyStart, keyDestination, trainDirectionStart, trainDirectionEnd, lengthOfTrain);
-        List<Railway> path = new LinkedList<>();
+        List<Pair<SimpleRailway, Integer>> path = new LinkedList<>();
         String realKeyStart = trainDirectionStart.getPrefix().concat(keyStart);
         boolean firstIteration = true;
         while (tmp != null) {
-            path.add(tmp.railway);
+            path.add(new Pair<>(new SimpleRailway(tmp.railway), tmp.distance));
             if (!firstIteration && realKeyStart.equals(tmp.railway.getKey())) {
                 break;
             } else if (firstIteration && realKeyStart.equals(tmp.railway.getKey())) {
