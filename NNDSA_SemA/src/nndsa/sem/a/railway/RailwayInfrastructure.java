@@ -65,23 +65,6 @@ public class RailwayInfrastructure {
 
     public void deleteRailway(String key) {
         try {
-            for (String neighbor : infrastructure.getAllNodeKeys()) {
-                infrastructure.deleteEdgeIfExists(
-                        RailwayDirectionType.THERE.getPrefix().concat(neighbor),
-                        RailwayDirectionType.BACK.getPrefix().concat(key));
-
-                infrastructure.deleteEdgeIfExists(
-                        RailwayDirectionType.BACK.getPrefix().concat(neighbor),
-                        RailwayDirectionType.THERE.getPrefix().concat(key));
-
-                infrastructure.deleteEdgeIfExists(
-                        RailwayDirectionType.THERE.getPrefix().concat(neighbor),
-                        RailwayDirectionType.THERE.getPrefix().concat(key));
-
-                infrastructure.deleteEdgeIfExists(
-                        RailwayDirectionType.BACK.getPrefix().concat(neighbor),
-                        RailwayDirectionType.BACK.getPrefix().concat(key));
-            }
             infrastructure.deleteNode(RailwayDirectionType.THERE.getPrefix().concat(key));
             infrastructure.deleteNode(RailwayDirectionType.BACK.getPrefix().concat(key));
         } catch (Exception ex) {
