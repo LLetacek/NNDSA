@@ -1,5 +1,7 @@
 package nndsa.sem.a;
 
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import nndsa.sem.a.railway.RailwayInfrastructure;
 import nndsa.sem.a.railway.RailwayTrackType;
 import nndsa.sem.a.railway.Serialization;
@@ -69,9 +71,20 @@ public class Program {
         
         try {
             Serialization.saveToCSV("./test.csv", instance);
-        } catch (Exception e) {
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
             System.out.println(e.getMessage());
         }
+        
+        System.out.println(instance.getSize());
+        instance.deleteRailway("v26");
+        System.out.println(instance.getSize());
+        
+        try {
+            Serialization.loadFromCSV("./test.csv", instance);
+        }catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        
+        System.out.println(instance.getSize());
     }
-    
 }

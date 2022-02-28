@@ -258,6 +258,10 @@ public class RailwayInfrastructure {
     public void clear() {
         infrastructure.clear();
     }
+    
+    public int getSize() {
+        return infrastructure.getNodeCounter();
+    }
 
     public List<SimpleRailway> getSimpleRailwayList() {
         List<String> keys = infrastructure.getAllNodeKeys();
