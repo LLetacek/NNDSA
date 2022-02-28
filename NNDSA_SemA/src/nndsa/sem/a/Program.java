@@ -2,6 +2,10 @@ package nndsa.sem.a;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
+import javafx.util.Pair;
+import nndsa.sem.a.railway.Railway;
+import nndsa.sem.a.railway.RailwayDirectionType;
 import nndsa.sem.a.railway.RailwayInfrastructure;
 import nndsa.sem.a.railway.RailwayTrackType;
 import nndsa.sem.a.railway.Serialization;
@@ -90,6 +94,14 @@ public class Program {
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
+        
+        instance.setOccupancy("v5", 100);
+        instance.setOccupancy("v4", 20);
+        
+        List<Pair<Railway,Integer>> path = instance.getShortestPath("v10", "v4", RailwayDirectionType.BACK, RailwayDirectionType.THERE, 20);
+        path.forEach((pair) -> {
+            System.out.println(pair.getKey().getKeyWithoutPrefix() + " - " + pair.getValue());
+        });
 
     }
 }

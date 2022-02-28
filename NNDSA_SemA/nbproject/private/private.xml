@@ -4,14 +4,11 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/railway/Railway.java</file>
-            <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/gui/MainViewController.java</file>
             <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/railway/RailwayInfrastructure.java</file>
-            <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/gui/MainView.fxml</file>
             <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/Program.java</file>
             <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/railway/Serialization.java</file>
             <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/test/nndsa/sem/a/railway/RailwayInfrastructureTest.java</file>
-            <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/graph/Graph.java</file>
-            <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/gui/Main.java</file>
+            <file>file:/C:/Users/ludek/Desktop/upce/NNDSA/NNDSA/NNDSA_SemA/src/nndsa/sem/a/railway/SimpleRailway.java</file>
         </group>
     </open-files>
 </project-private>

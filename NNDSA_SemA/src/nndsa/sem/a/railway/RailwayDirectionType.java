@@ -8,11 +8,15 @@ public enum RailwayDirectionType {
     THERE("2"),
     BACK("1");
     
+    private static final int prefixLength = 1;
     private final String prefix;
     private static final List<RailwayDirectionType> values = Collections.unmodifiableList
                                                         (Arrays.asList(values()));
     
     private RailwayDirectionType(String prefix){
+        if(prefixLength!=prefix.length())
+            throw new IllegalArgumentException("Error in prefix");
+        
         this.prefix = prefix;
     }
 
@@ -27,5 +31,9 @@ public enum RailwayDirectionType {
             }
         }
         throw new IllegalArgumentException();
+    }
+    
+    public static int getPrefixLength() {
+        return prefixLength;
     }
 }

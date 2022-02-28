@@ -1,5 +1,9 @@
 package nndsa.sem.a.railway;
 
+import java.util.LinkedList;
+import java.util.List;
+import javafx.util.Pair;
+
 public class Railway {
     
     private final String key;
@@ -8,6 +12,14 @@ public class Railway {
     private final RailwayTrackType type;
     private int occupancy;
 
+    public Railway(Railway railway) {
+        this.key = railway.key;
+        this.length = railway.length;
+        this.direction = railway.direction;
+        this.type = railway.type;
+        this.occupancy = railway.occupancy;
+    }
+    
     public Railway(String key, int length, RailwayDirectionType direction, RailwayTrackType type, int occupancy) {
         this.key = direction.getPrefix().concat(key);
         this.length = length;
@@ -41,6 +53,10 @@ public class Railway {
     public String getKey() {
         return key;
     }
+    
+    public String getKeyWithoutPrefix() {
+        return key.substring(direction.getPrefix().length());
+    }
 
     public RailwayTrackType getType() {
         return type;
@@ -56,5 +72,34 @@ public class Railway {
     
     public boolean isTrainAllowedToStop(int trainLength) {
         return getSpace() >= trainLength && type.isAllowedToStop();
+    }
+    
+    public String adjencyRailwaysToString(List<Pair<String, RailwayDirectionType>> keyAdjencyRailways) {
+        StringBuilder string =  new StringBuilder();
+        List<Pair<String, String>> adjencyRailways = new LinkedList<>();
+
+        if(keyAdjencyRailways==null)
+            return string.toString();
+        
+        int prefixLength = RailwayDirectionType.getPrefixLength();
+        keyAdjencyRailways.forEach((key) -> {
+            string.append(this.key.substring(prefixLength)).append(";").append(this.direction.getPrefix()).append(";")
+                .append(key.getKey()).append(";").append(key.getValue().getPrefix())
+                .append("\n");
+        });
+        
+        return string.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder string =  new StringBuilder();
+        int prefixLength = RailwayDirectionType.getPrefixLength();
+        string.append(key.substring(prefixLength)).append(";")
+                .append(length).append(";")
+                .append(direction.getPrefix()).append(";")
+                .append(type.toString()).append(";")
+                .append(occupancy);
+        return string.toString();
     }
 }

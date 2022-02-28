@@ -20,9 +20,15 @@ public class Serialization {
     public static void saveToCSV(String fileBase, RailwayInfrastructure infrastructure) throws FileNotFoundException, UnsupportedEncodingException {
         PrintWriter pw = new PrintWriter(fileBase, "UTF-8");
         List<String> connection = new LinkedList<>();
-        infrastructure.getSimpleRailwayList().forEach((railway) -> {
-            pw.println(railway.toString());
-            connection.add(railway.adjencyRailwaysToString());
+        
+        infrastructure.getAllRailwayKeysDirection().forEach((keyRailway) -> {
+            Railway railway = infrastructure.getRailway(
+                            keyRailway.getKey(), 
+                            keyRailway.getValue());
+            pw.println(railway);
+            connection.add(railway.adjencyRailwaysToString(
+                    infrastructure.getConnectedRailwayKeysDirection(
+                            keyRailway.getKey(),keyRailway.getValue()))); 
         });
         pw.println(SPLITTER);
         connection.forEach(pw::print);
@@ -39,8 +45,8 @@ public class Serialization {
                         String[] parse = line.split(";");
                         switch (parse.length) {
                             case 5:
-                                infrastructure.addSimpleRailway(
-                                        new SimpleRailway(
+                                infrastructure.addRailway(
+                                        new Railway(
                                                 parse[0],
                                                 Integer.valueOf(parse[1]),
                                                 RailwayDirectionType.getValue(parse[2]),

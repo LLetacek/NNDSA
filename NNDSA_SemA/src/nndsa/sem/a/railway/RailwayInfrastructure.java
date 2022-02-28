@@ -20,11 +20,7 @@ public class RailwayInfrastructure {
         infrastructure = new Graph<>();
     }
 
-    public void addSimpleRailway(SimpleRailway simpleRailway) {
-        Railway railway = new Railway(
-                simpleRailway.getKey(), simpleRailway.getLength(), 
-                simpleRailway.getDirection(), simpleRailway.getType(), 
-                simpleRailway.getOccupancy());
+    public void addRailway(Railway railway) {
         infrastructure.addNode(railway.getKey(), railway);
     }
     
@@ -37,7 +33,7 @@ public class RailwayInfrastructure {
     }
     
     public void addRailway(String key, int length, RailwayTrackType type) {
-        addRailway(key, length, type, 0);
+        RailwayInfrastructure.this.addRailway(key, length, type, 0);
     }
 
     public void addRailway(String key, int length, RailwayTrackType type, int occupancy) {
@@ -125,6 +121,30 @@ public class RailwayInfrastructure {
         List<String> keys = infrastructure.getAllNodeKeys();
         return getUniqueKeysWithoutPrefix(keys);
     }
+    
+    public List<Pair<String, RailwayDirectionType>> getAllRailwayKeysDirection() {
+        List<String> keys = infrastructure.getAllNodeKeys();
+        List<Pair<String,RailwayDirectionType>> result = new LinkedList<>();
+        int prefixLength = RailwayDirectionType.getPrefixLength();
+        for (int i = 0; i < keys.size(); i++) {
+            result.add(
+                    new Pair<>(
+                            keys.get(i).substring(prefixLength),
+                            RailwayDirectionType.getValue(keys.get(i).substring(0, prefixLength))));
+        }
+        return result;
+    }
+    
+     public List<Pair<String, RailwayDirectionType>> getConnectedRailwayKeysDirection(String key, RailwayDirectionType direction) {
+        List<Pair<String, RailwayDirectionType>> neighbors = new LinkedList<>();
+        int prefixLength = RailwayDirectionType.getPrefixLength();
+        infrastructure.getAdjencyNodeKeys(direction.getPrefix().concat(key)).forEach((neighbor) -> {
+            neighbors.add(new Pair<>(
+                            neighbor.substring(prefixLength),
+                            RailwayDirectionType.getValue(neighbor.substring(0, prefixLength))));
+        });
+        return neighbors;
+    }
 
     public List<String> getConnectedRailwayKeys(String key) {
         List<String> keys = new LinkedList<>();
@@ -135,11 +155,13 @@ public class RailwayInfrastructure {
 
         return getUniqueKeysWithoutPrefix(keys);
     }
+    
+    
 
     private List<String> getUniqueKeysWithoutPrefix(List<String> list) {
         Set<String> uniqueKeys = new LinkedHashSet<>();
         for (int i = 0; i < list.size(); i++) {
-            uniqueKeys.add(list.get(i).substring(RailwayDirectionType.THERE.getPrefix().length()));
+            uniqueKeys.add(list.get(i).substring(RailwayDirectionType.getPrefixLength()));
         }
         return new LinkedList<>(uniqueKeys);
     }
@@ -181,18 +203,19 @@ public class RailwayInfrastructure {
         return end;
     }
 
-    public List<Pair<SimpleRailway, Integer>> getShortestPath(String keyStart, String keyDestination,
+    public List<Pair<Railway, Integer>> getShortestPath(String keyStart, String keyDestination,
             RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
 
         Node tmp = getShortestPathByNode(keyStart, keyDestination, trainDirectionStart, trainDirectionEnd, lengthOfTrain);
-        List<Pair<SimpleRailway, Integer>> path = new LinkedList<>();
+        List<Pair<Railway, Integer>> path = new LinkedList<>();
         String realKeyStart = trainDirectionStart.getPrefix().concat(keyStart);
         boolean firstIteration = true;
         while (tmp != null) {
-            path.add(new Pair<>(new SimpleRailway(tmp.railway), tmp.distance));
-            if (!firstIteration && realKeyStart.equals(tmp.railway.getKey())) {
+            path.add(new Pair<>(tmp.railway, tmp.distance));
+            String originalKey = tmp.railway.getKeyWithoutPrefix();
+            if (!firstIteration && realKeyStart.equals(originalKey)) {
                 break;
-            } else if (firstIteration && realKeyStart.equals(tmp.railway.getKey())) {
+            } else if (firstIteration && realKeyStart.equals(originalKey)) {
                 firstIteration = false;
             }
 
@@ -261,17 +284,6 @@ public class RailwayInfrastructure {
     
     public int getSize() {
         return infrastructure.getNodeCounter();
-    }
-
-    public List<SimpleRailway> getSimpleRailwayList() {
-        List<String> keys = infrastructure.getAllNodeKeys();
-        List<SimpleRailway> railwayInfrastructure = new LinkedList<>();
-                        
-        keys.forEach((key) -> {
-            railwayInfrastructure.add(new SimpleRailway(infrastructure.getNodeData(key), infrastructure.getAdjencyNodeKeys(key)));
-        });
-        
-        return railwayInfrastructure;
     }
 
     private class Node {

@@ -13,7 +13,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import nndsa.sem.a.railway.RailwayTrackType;
-import nndsa.sem.a.railway.SimpleRailway;
+import nndsa.sem.a.railway.Railway;
 
 /**
  * FXML Controller class
@@ -23,15 +23,15 @@ import nndsa.sem.a.railway.SimpleRailway;
 public class MainViewController implements Initializable {
 
     @FXML
-    private TableView<SimpleRailway> tbViewRailway;
+    private TableView<Railway> tbViewRailway;
     @FXML
-    private TableColumn<SimpleRailway, String> VRKey;
+    private TableColumn<Railway, String> VRKey;
     @FXML
-    private TableColumn<SimpleRailway, Integer> VRLength;
+    private TableColumn<Railway, Integer> VRLength;
     @FXML
-    private TableColumn<SimpleRailway, Integer> VROccupancy;
+    private TableColumn<Railway, Integer> VROccupancy;
     @FXML
-    private TableColumn<SimpleRailway, RailwayTrackType> VRType;
+    private TableColumn<Railway, RailwayTrackType> VRType;
     @FXML
     private TableView<String> tbViewNeighbor;
     @FXML
