@@ -1,12 +1,9 @@
 package nndsa.sem.a.graph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  *
@@ -152,7 +149,7 @@ public class Graph<KN, N> implements IGraph<KN, N> {
         public Node(KN key, N data) {
             this.key = key;
             this.data = data;
-            this.adjacentEdges = new LinkedList<>();
+            this.adjacentEdges = new ArrayList<>();
         }
     }
 

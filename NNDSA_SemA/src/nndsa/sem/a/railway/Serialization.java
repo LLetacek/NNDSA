@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class Serialization {
@@ -65,9 +64,4 @@ public class Serialization {
                     });
         }
     }
-
-    private static Railway createRailway(String line) {
-        return null;
-    }
-
 }
