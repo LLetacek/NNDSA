@@ -25,7 +25,7 @@ public class Serialization {
             connection.add(railway.adjencyRailwaysToString());
         });
         pw.println(SPLITTER);
-        connection.forEach(pw::println);
+        connection.forEach(pw::print);
         pw.close();
     }
 
@@ -36,10 +36,6 @@ public class Serialization {
         try (Stream<String> file = Files.lines(Paths.get(fileBase), StandardCharsets.UTF_8)) {
             file.filter(t -> t != null)
                     .forEach((String line) -> {
-                        if (line.equals(SPLITTER)) {
-                            return;
-                        }
-
                         String[] parse = line.split(";");
                         switch (parse.length) {
                             case 5:
@@ -59,7 +55,6 @@ public class Serialization {
                                         RailwayDirectionType.getValue(parse[3]));
                                 break;
                             default:
-                                throw new IllegalArgumentException("Unknown format csv!");
                         }
                     });
         }

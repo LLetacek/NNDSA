@@ -69,9 +69,6 @@ public class SimpleRailway {
                 .append("\n");
         });
         
-        string.append(key).append(";").append(direction.getPrefix()).append(";")
-                .append(key).append(";").append(direction.getPrefix());
-        
         return string.toString();
     }
 

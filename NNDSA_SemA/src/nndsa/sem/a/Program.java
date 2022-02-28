@@ -40,7 +40,7 @@ public class Program {
         instance.addRailway("v24", 40, RailwayTrackType.SWITCH);
         instance.addRailway("v25", 33, RailwayTrackType.SWITCH);
         instance.addRailway("v26", 60, RailwayTrackType.SWITCH);
-        
+
         instance.addConnection("v1", "v13");
         instance.addConnection("v2", "v15");
         instance.addConnection("v15", "v16");
@@ -68,23 +68,28 @@ public class Program {
         instance.addConnection("v6", "v24");
         instance.addConnection("v23", "v12");
         instance.addConnection("v24", "v12");
-        
+
         try {
             Serialization.saveToCSV("./test.csv", instance);
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
             System.out.println(e.getMessage());
         }
-        
-        System.out.println(instance.getSize());
-        instance.deleteRailway("v26");
-        System.out.println(instance.getSize());
-        
+
         try {
+            Serialization.saveToCSV("./test.csv", instance);
+
+            System.out.println(instance.getSize());
+            instance.deleteRailway("v26");
+            System.out.println(instance.getSize());
+
             Serialization.loadFromCSV("./test.csv", instance);
-        }catch (Exception ex) {
+
+            System.out.println(instance.getSize());
+
+            Serialization.saveToCSV("./test.csv", instance);
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
-        
-        System.out.println(instance.getSize());
+
     }
 }
