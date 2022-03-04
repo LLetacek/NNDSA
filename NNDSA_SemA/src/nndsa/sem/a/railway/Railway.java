@@ -5,7 +5,7 @@ import java.util.List;
 import javafx.util.Pair;
 
 public class Railway {
-    
+
     private final String key;
     private int length;
     private final RailwayDirectionType direction;
@@ -19,31 +19,47 @@ public class Railway {
         this.type = railway.type;
         this.occupancy = railway.occupancy;
     }
-    
+
     public Railway(String key, int length, RailwayDirectionType direction, RailwayTrackType type, int occupancy) {
-        this.key = direction.getPrefix().concat(key);
+        if (occupancy < 0 || length <= 0) {
+            throw new IllegalArgumentException("Length must be greather than 0 and occupancy cannot be less than 0!");
+        }
+        
+        this.key = (direction == RailwayDirectionType.BOTH) ? key : direction.getPrefix().concat(key);
         this.length = length;
         this.direction = direction;
         this.type = type;
         this.occupancy = occupancy;
+        
+        checkOccupancyLength();
     }
 
     public int getLength() {
         return length;
     }
-    
+
     public int getOccupancy() {
         return occupancy;
     }
-    
+
     public int getSpace() {
         return length - occupancy;
     }
 
     public void setLength(int length) {
-        if(length < 0)
+        if (length < 0) {
             throw new IllegalArgumentException("Length must be greater than or equal to 0!");
+        }
+        
+        checkOccupancyLength();
+        
         this.length = length;
+    }
+
+    private void checkOccupancyLength() throws IllegalArgumentException {
+        if (occupancy > length) {
+            throw new IllegalArgumentException("Occupancy must be less than or equal to length!");
+        }
     }
 
     public RailwayDirectionType getDirection() {
@@ -53,7 +69,7 @@ public class Railway {
     public String getKey() {
         return key;
     }
-    
+
     public String getKeyWithoutPrefix() {
         return key.substring(direction.getPrefix().length());
     }
@@ -61,39 +77,46 @@ public class Railway {
     public RailwayTrackType getType() {
         return type;
     }
-    
+
     public boolean isOccupied() {
         return occupancy != 0;
     }
 
     public void setOccupancy(int occupancy) {
+        if (occupancy < 0) {
+            throw new IllegalArgumentException("Occupancy cannot be less than 0!");
+        }
+        
+        checkOccupancyLength();
+        
         this.occupancy = occupancy;
     }
-    
+
     public boolean isTrainAllowedToStop(int trainLength) {
         return getSpace() >= trainLength && type.isAllowedToStop();
     }
-    
+
     public String adjencyRailwaysToString(List<Pair<String, RailwayDirectionType>> keyAdjencyRailways) {
-        StringBuilder string =  new StringBuilder();
+        StringBuilder string = new StringBuilder();
         List<Pair<String, String>> adjencyRailways = new LinkedList<>();
 
-        if(keyAdjencyRailways==null)
+        if (keyAdjencyRailways == null) {
             return string.toString();
-        
+        }
+
         int prefixLength = RailwayDirectionType.getPrefixLength();
         keyAdjencyRailways.forEach((key) -> {
             string.append(this.key.substring(prefixLength)).append(";").append(this.direction.getPrefix()).append(";")
-                .append(key.getKey()).append(";").append(key.getValue().getPrefix())
-                .append("\n");
+                    .append(key.getKey()).append(";").append(key.getValue().getPrefix())
+                    .append("\n");
         });
-        
+
         return string.toString();
     }
 
     @Override
     public String toString() {
-        StringBuilder string =  new StringBuilder();
+        StringBuilder string = new StringBuilder();
         int prefixLength = RailwayDirectionType.getPrefixLength();
         string.append(key.substring(prefixLength)).append(";")
                 .append(length).append(";")

@@ -8,74 +8,77 @@ import java.util.List;
 /**
  *
  * @author st58262 Letacek
- * @param <N> node data
- * @param <KN> node key value
+ * @param <V> vertex data
+ * @param <KV> vertex key value
  */
-public class Graph<KN, N> implements IGraph<KN, N> {
+public class Graph<KV, V> implements IGraph<KV, V> {
 
-    private final HashMap<KN, Node> nodes;
-    private int nodeCounter;
+    private final HashMap<KV, Vertex> vertexes;
+    private int vertexCounter;
 
     public Graph() {
-        nodes = new HashMap<>();
-        nodeCounter = 0;
+        vertexes = new HashMap<>();
+        vertexCounter = 0;
     }
 
     @Override
-    public void addEdge(KN start, KN destination) {
+    public void addEdge(KV start, KV destination) {
         if (start == null || destination == null) {
             throw new IllegalArgumentException();
         }
 
-        Node startNode = nodes.get(start);
-        Node destinationNode = nodes.get(destination);
-        if (startNode == null || destinationNode == null) {
-            throw new IllegalArgumentException("Unknown node!");
+        Vertex startVertex = vertexes.get(start);
+        Vertex destinationVertex = vertexes.get(destination);
+        if (startVertex == null || destinationVertex == null) {
+            throw new IllegalArgumentException("Unknown vertex!");
         }
 
-        Edge edge = new Edge(destinationNode);
-        startNode.adjacentEdges.add(edge);
+        Edge edge = new Edge(destinationVertex);
+        startVertex.adjacentEdges.add(edge);
     }
 
     @Override
-    public void addNode(KN key, N data) {
+    public void addVertex(KV key, V data) {
         if (key == null || data == null) {
-            throw new IllegalArgumentException("Unknown node!");
+            throw new IllegalArgumentException("Unknown vertex!");
         }
+        
+        if(vertexes.containsKey(key))
+            throw new IllegalArgumentException("Key already exists!");
 
-        Node node = new Node(key, data);
-        nodes.put(key, node);
-        ++nodeCounter;
+        Vertex vertex = new Vertex(key, data);
+        vertexes.put(key, vertex);
+        ++vertexCounter;
     }
 
     @Override
-    public void deleteEdge(KN start, KN destination) {
-        Node node = getNode(start);
+    public void deleteEdge(KV start, KV destination) {
+        Vertex vertex = getVertex(start);
 
-        int idEdge = getEdgeIndex(node, destination);
-        if (idEdge == node.adjacentEdges.size()) {
-            throw new IllegalArgumentException("Destination node not found!");
+        int idEdge = getEdgeIndex(vertex, destination);
+        if (idEdge == vertex.adjacentEdges.size()) {
+            throw new IllegalArgumentException("Destination vertex not found!");
         }
 
-        node.adjacentEdges.remove(idEdge);
+        vertex.adjacentEdges.remove(idEdge);
     }
 
     @Override
-    public void deleteEdgeIfExists(KN start, KN destination) {
-        Node node = getNode(start);
+    public void deleteEdgeIfExists(KV start, KV destination) {
+        Vertex vertex = getVertex(start);
 
-        int idEdge = getEdgeIndex(node, destination);
-        if (idEdge == node.adjacentEdges.size()) {
+        int idEdge = getEdgeIndex(vertex, destination);
+        if (idEdge == vertex.adjacentEdges.size()) {
             return;
         }
 
-        node.adjacentEdges.remove(idEdge);
+        vertex.adjacentEdges.remove(idEdge);
     }
 
-    private int getEdgeIndex(Node node, KN destination) {
+    private int getEdgeIndex(Vertex vertex, KV destination) {
         int idEdge = 0;
-        for (; idEdge < node.adjacentEdges.size(); ++idEdge) {
-            if (node.adjacentEdges.get(idEdge).nextNode.key == destination) {
+        for (; idEdge < vertex.adjacentEdges.size(); ++idEdge) {
+            if (vertex.adjacentEdges.get(idEdge).nextVertex.key.equals(destination)) {
                 break;
             }
         }
@@ -83,70 +86,70 @@ public class Graph<KN, N> implements IGraph<KN, N> {
     }
 
     @Override
-    public void deleteNode(KN keyNode) {
-        nodes.remove(keyNode);
-        nodes.forEach((k, node) -> {
+    public void deleteVertex(KV keyVertex) {
+        vertexes.remove(keyVertex);
+        vertexes.forEach((k, vertex) -> {
             List<Edge> indexList = new LinkedList<>();
-            for (int i = 0; i < node.adjacentEdges.size(); i++) {
-                Edge edge = node.adjacentEdges.get(i);
-                if (edge.nextNode.key.equals(keyNode)) {
+            for (int i = 0; i < vertex.adjacentEdges.size(); i++) {
+                Edge edge = vertex.adjacentEdges.get(i);
+                if (edge.nextVertex.key.equals(keyVertex)) {
                     indexList.add(edge);
                 }
             }
-            node.adjacentEdges.removeAll(indexList);
+            vertex.adjacentEdges.removeAll(indexList);
         });
-        --nodeCounter;
+        --vertexCounter;
     }
 
     @Override
-    public N getNodeData(KN key) {
-        Node node = getNode(key);
-        return node.data;
+    public V getVertexData(KV key) {
+        Vertex vertex = getVertex(key);
+        return vertex.data;
     }
 
     @Override
-    public List<KN> getAdjencyNodeKeys(KN key) {
-        Node node = getNode(key);
-        List<KN> keyNodes = new LinkedList<>();
-        node.adjacentEdges.forEach((edge) -> {
-            keyNodes.add(edge.nextNode.key);
+    public List<KV> getAdjencyVertexKeys(KV key) {
+        Vertex vertex = getVertex(key);
+        List<KV> keyVertexes = new LinkedList<>();
+        vertex.adjacentEdges.forEach((edge) -> {
+            keyVertexes.add(edge.nextVertex.key);
         });
-        return keyNodes;
+        return keyVertexes;
     }
 
     @Override
-    public List<KN> getAllNodeKeys() {
-        return new LinkedList<>(nodes.keySet());
+    public List<KV> getAllVertexKeys() {
+        return new LinkedList<>(vertexes.keySet());
     }
 
     @Override
-    public int getNodeCounter() {
-        return nodeCounter;
+    public int getVertexCounter() {
+        return vertexCounter;
     }
 
-    private Node getNode(KN key) {
-        Node node = nodes.get(key);
+    private Vertex getVertex(KV key) {
+        Vertex vertex = vertexes.get(key);
 
-        if (node == null) {
-            throw new IllegalArgumentException("Key of node not found!");
+        if (vertex == null) {
+            throw new IllegalArgumentException("Key of vertex not found!");
         }
 
-        return node;
+        return vertex;
     }
     
     @Override
     public void clear(){
-        nodes.clear();
-        nodeCounter = 0;
+        vertexes.clear();
+        vertexCounter = 0;
     }
 
-    private class Node {
+    private class Vertex {
 
-        KN key;
-        N data;
+        KV key;
+        V data;
         List<Edge> adjacentEdges;
 
-        public Node(KN key, N data) {
+        public Vertex(KV key, V data) {
             this.key = key;
             this.data = data;
             this.adjacentEdges = new ArrayList<>();
@@ -155,10 +158,10 @@ public class Graph<KN, N> implements IGraph<KN, N> {
 
     private class Edge {
 
-        Node nextNode;
+        Vertex nextVertex;
 
-        public Edge(Node nextNode) {
-            this.nextNode = nextNode;
+        public Edge(Vertex nextVertex) {
+            this.nextVertex = nextVertex;
         }
     }
 }

@@ -21,17 +21,21 @@ public class RailwayInfrastructure {
     }
 
     public void addRailway(Railway railway) {
-        infrastructure.addNode(railway.getKey(), railway);
+        if (railway.getDirection() == null || railway.getDirection() == RailwayDirectionType.BOTH) {
+            addRailway(railway.getKey(), railway.getLength(), railway.getType());
+            return;
+        }
+        infrastructure.addVertex(railway.getKey(), railway);
     }
-    
-    public void addSimpleConnection(String keyStart, RailwayDirectionType typeStart, 
+
+    public void addSimpleConnection(String keyStart, RailwayDirectionType typeStart,
             String keyDestination, RailwayDirectionType typeDestination) {
 
         keyStart = typeStart.getPrefix().concat(keyStart);
         keyDestination = typeDestination.getPrefix().concat(keyDestination);
         infrastructure.addEdge(keyStart, keyDestination);
     }
-    
+
     public void addRailway(String key, int length, RailwayTrackType type) {
         RailwayInfrastructure.this.addRailway(key, length, type, 0);
     }
@@ -39,19 +43,23 @@ public class RailwayInfrastructure {
     public void addRailway(String key, int length, RailwayTrackType type, int occupancy) {
         Railway railwayThere = new Railway(key, length, RailwayDirectionType.THERE, type, occupancy);
         Railway railwayBack = new Railway(key, length, RailwayDirectionType.BACK, type, occupancy);
-        infrastructure.addNode(railwayThere.getKey(), railwayThere);
-        infrastructure.addNode(railwayBack.getKey(), railwayBack);
+        infrastructure.addVertex(railwayThere.getKey(), railwayThere);
+        infrastructure.addVertex(railwayBack.getKey(), railwayBack);
     }
-    
+
     public void addConnection(String keyStart, String keyDestination) {
+        if (keyStart.equals(keyDestination)) {
+            throw new IllegalArgumentException(ErrorMessage.cantConnect);
+        }
+
         String keyStartThere = RailwayDirectionType.THERE.getPrefix().concat(keyStart);
         String keyDestinationThere = RailwayDirectionType.THERE.getPrefix().concat(keyDestination);
         Railway startThere = null;
         Railway destinationThere = null;
 
         try {
-            startThere = infrastructure.getNodeData(keyStartThere);
-            destinationThere = infrastructure.getNodeData(keyDestinationThere);
+            startThere = infrastructure.getVertexData(keyStartThere);
+            destinationThere = infrastructure.getVertexData(keyDestinationThere);
         } catch (Exception ex) {
             throw new IllegalArgumentException(ErrorMessage.doesNotExist);
         }
@@ -79,8 +87,8 @@ public class RailwayInfrastructure {
 
     public void deleteRailway(String key) {
         try {
-            infrastructure.deleteNode(RailwayDirectionType.THERE.getPrefix().concat(key));
-            infrastructure.deleteNode(RailwayDirectionType.BACK.getPrefix().concat(key));
+            infrastructure.deleteVertex(RailwayDirectionType.THERE.getPrefix().concat(key));
+            infrastructure.deleteVertex(RailwayDirectionType.BACK.getPrefix().concat(key));
         } catch (Exception ex) {
             throw new IllegalArgumentException(ErrorMessage.doesNotExist);
         }
@@ -88,28 +96,34 @@ public class RailwayInfrastructure {
 
     public void deleteConnection(String keyStart, String keyDestination) {
         try {
-            infrastructure.deleteEdge(
-                    RailwayDirectionType.THERE.getPrefix().concat(keyStart),
-                    RailwayDirectionType.THERE.getPrefix().concat(keyDestination));
-            infrastructure.deleteEdge(
-                    RailwayDirectionType.BACK.getPrefix().concat(keyDestination),
-                    RailwayDirectionType.BACK.getPrefix().concat(keyStart));
-
+            deleteNeighbor(keyStart, keyDestination);
         } catch (Exception ex) {
-            throw new IllegalArgumentException(ErrorMessage.doesNotExist);
+            try {
+                deleteNeighbor(keyDestination, keyStart);
+            } catch (Exception innerEx) {
+                throw new IllegalArgumentException(ErrorMessage.doesNotExist);
+            }
         }
+    }
+
+    private void deleteNeighbor(String keyStart, String keyDestination) {
+        infrastructure.deleteEdge(
+                RailwayDirectionType.THERE.getPrefix().concat(keyStart),
+                RailwayDirectionType.THERE.getPrefix().concat(keyDestination));
+        infrastructure.deleteEdge(
+                RailwayDirectionType.BACK.getPrefix().concat(keyDestination),
+                RailwayDirectionType.BACK.getPrefix().concat(keyStart));
 
         infrastructure.deleteEdgeIfExists(
-                RailwayDirectionType.THERE.getPrefix().concat(keyStart),
-                RailwayDirectionType.BACK.getPrefix().concat(keyDestination));
-
+                RailwayDirectionType.THERE.getPrefix().concat(keyDestination),
+                RailwayDirectionType.BACK.getPrefix().concat(keyStart));
         infrastructure.deleteEdgeIfExists(
                 RailwayDirectionType.BACK.getPrefix().concat(keyStart),
                 RailwayDirectionType.THERE.getPrefix().concat(keyDestination));
     }
 
     public Railway getRailway(String key, RailwayDirectionType direction) {
-        return infrastructure.getNodeData(direction.getPrefix().concat(key));
+        return infrastructure.getVertexData(direction.getPrefix().concat(key));
     }
 
     public void setOccupancy(String key, int length) {
@@ -118,13 +132,13 @@ public class RailwayInfrastructure {
     }
 
     public List<String> getAllRailwayKeys() {
-        List<String> keys = infrastructure.getAllNodeKeys();
+        List<String> keys = infrastructure.getAllVertexKeys();
         return getUniqueKeysWithoutPrefix(keys);
     }
-    
+
     public List<Pair<String, RailwayDirectionType>> getAllRailwayKeysDirection() {
-        List<String> keys = infrastructure.getAllNodeKeys();
-        List<Pair<String,RailwayDirectionType>> result = new LinkedList<>();
+        List<String> keys = infrastructure.getAllVertexKeys();
+        List<Pair<String, RailwayDirectionType>> result = new LinkedList<>();
         int prefixLength = RailwayDirectionType.getPrefixLength();
         for (int i = 0; i < keys.size(); i++) {
             result.add(
@@ -134,29 +148,38 @@ public class RailwayInfrastructure {
         }
         return result;
     }
-    
-     public List<Pair<String, RailwayDirectionType>> getConnectedRailwayKeysDirection(String key, RailwayDirectionType direction) {
+
+    public List<Pair<String, RailwayDirectionType>> getConnectedRailwayKeysDirection(String key, RailwayDirectionType direction) {
         List<Pair<String, RailwayDirectionType>> neighbors = new LinkedList<>();
         int prefixLength = RailwayDirectionType.getPrefixLength();
-        infrastructure.getAdjencyNodeKeys(direction.getPrefix().concat(key)).forEach((neighbor) -> {
+        infrastructure.getAdjencyVertexKeys(direction.getPrefix().concat(key)).forEach((neighbor) -> {
             neighbors.add(new Pair<>(
-                            neighbor.substring(prefixLength),
-                            RailwayDirectionType.getValue(neighbor.substring(0, prefixLength))));
+                    neighbor.substring(prefixLength),
+                    RailwayDirectionType.getValue(neighbor.substring(0, prefixLength))));
         });
         return neighbors;
     }
 
     public List<String> getConnectedRailwayKeys(String key) {
         List<String> keys = new LinkedList<>();
-        keys.addAll(infrastructure.getAdjencyNodeKeys(
+        keys.addAll(infrastructure.getAdjencyVertexKeys(
                 RailwayDirectionType.THERE.getPrefix().concat(key)));
-        keys.addAll(infrastructure.getAdjencyNodeKeys(
+        keys.addAll(infrastructure.getAdjencyVertexKeys(
                 RailwayDirectionType.BACK.getPrefix().concat(key)));
 
         return getUniqueKeysWithoutPrefix(keys);
     }
-    
-    
+
+    public List<Railway> getSimpleRailways() {
+        List<Railway> simpleRailways = new LinkedList<>();
+
+        getUniqueKeysWithoutPrefix(infrastructure.getAllVertexKeys()).forEach((t) -> {
+            Railway there = infrastructure.getVertexData(RailwayDirectionType.THERE.getPrefix().concat(t));
+            simpleRailways.add(new Railway(t, there.getLength(), RailwayDirectionType.BOTH, there.getType(), there.getOccupancy()));
+        });
+
+        return simpleRailways;
+    }
 
     private List<String> getUniqueKeysWithoutPrefix(List<String> list) {
         Set<String> uniqueKeys = new LinkedHashSet<>();
@@ -175,8 +198,8 @@ public class RailwayInfrastructure {
     private Node getShortestPathByNode(String keyStart, String keyDestination,
             RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
 
-        Railway startPosition = infrastructure.getNodeData(trainDirectionStart.getPrefix().concat(keyStart));
-        Railway endPosition = infrastructure.getNodeData(trainDirectionEnd.getPrefix().concat(keyDestination));
+        Railway startPosition = infrastructure.getVertexData(trainDirectionStart.getPrefix().concat(keyStart));
+        Railway endPosition = infrastructure.getVertexData(trainDirectionEnd.getPrefix().concat(keyDestination));
 
         if (endPosition.getSpace() < lengthOfTrain || startPosition.getSpace() < lengthOfTrain) {
             throw new IllegalArgumentException("The train is too big!");
@@ -184,12 +207,13 @@ public class RailwayInfrastructure {
 
         HashMap<String, Node> map = new HashMap<>();
         PriorityQueue<Node> keys = new PriorityQueue<>((a, b) -> {
-            if(a.distance < b.distance)
+            if (a.distance < b.distance) {
                 return -1;
-            else if (a.distance > b.distance)
+            } else if (a.distance > b.distance) {
                 return 1;
-            else
+            } else {
                 return 0;
+            }
         });
         insertAllRailwaysFromStartToNodes(map, startPosition);
 
@@ -211,11 +235,18 @@ public class RailwayInfrastructure {
         String realKeyStart = trainDirectionStart.getPrefix().concat(keyStart);
         boolean firstIteration = true;
         while (tmp != null) {
-            path.add(new Pair<>(tmp.railway, tmp.distance));
-            String originalKey = tmp.railway.getKeyWithoutPrefix();
-            if (!firstIteration && realKeyStart.equals(originalKey)) {
+            Railway simple = new Railway(
+                    tmp.railway.getKeyWithoutPrefix(),
+                    tmp.railway.getLength(),
+                    RailwayDirectionType.BOTH,
+                    tmp.railway.getType(),
+                    tmp.railway.getOccupancy());
+
+            path.add(new Pair<>(simple, tmp.distance));
+
+            if (!firstIteration && realKeyStart.equals(simple.getKey())) {
                 break;
-            } else if (firstIteration && realKeyStart.equals(originalKey)) {
+            } else if (firstIteration && realKeyStart.equals(simple.getKey())) {
                 firstIteration = false;
             }
 
@@ -230,7 +261,7 @@ public class RailwayInfrastructure {
             Node node = keys.poll();
             node.visited = true;
             Queue<String> adjencyNodes = new LinkedList<>(
-                    infrastructure.getAdjencyNodeKeys(node.railway.getKey()));
+                    infrastructure.getAdjencyVertexKeys(node.railway.getKey()));
 
             while (!adjencyNodes.isEmpty()) {
                 Node neighbor = map.get(adjencyNodes.poll());
@@ -271,19 +302,19 @@ public class RailwayInfrastructure {
 
     private void insertAllRailwaysFromStartToNodes(HashMap<String, Node> map, Railway startPosition) {
         map.put(startPosition.getKey(), new Node(0, startPosition, null));
-        infrastructure.getAllNodeKeys().forEach((key) -> {
+        infrastructure.getAllVertexKeys().forEach((key) -> {
             if (!startPosition.getKey().equals(key)) {
-                map.put(key, new Node(Integer.MAX_VALUE, infrastructure.getNodeData(key), null));
+                map.put(key, new Node(Integer.MAX_VALUE, infrastructure.getVertexData(key), null));
             }
         });
     }
-    
+
     public void clear() {
         infrastructure.clear();
     }
-    
+
     public int getSize() {
-        return infrastructure.getNodeCounter();
+        return infrastructure.getVertexCounter();
     }
 
     private class Node {

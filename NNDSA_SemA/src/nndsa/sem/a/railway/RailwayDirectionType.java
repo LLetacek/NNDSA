@@ -6,7 +6,8 @@ import java.util.List;
 
 public enum RailwayDirectionType {
     THERE("2"),
-    BACK("1");
+    BACK("1"),
+    BOTH(" ");
     
     private static final int prefixLength = 1;
     private final String prefix;

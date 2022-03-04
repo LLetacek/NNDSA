@@ -4,13 +4,13 @@ import java.util.List;
 
 public interface IGraph<KN, N> {
     public void addEdge(KN start, KN destination);
-    public void addNode(KN key, N data);
+    public void addVertex(KN key, N data);
     public void deleteEdge(KN start, KN destination);
     public void deleteEdgeIfExists(KN start, KN destination);
-    public void deleteNode(KN keyNode);
-    public N getNodeData(KN key);
-    public List<KN> getAdjencyNodeKeys(KN key);
-    public List<KN> getAllNodeKeys();
-    public int getNodeCounter();
+    public void deleteVertex(KN keyNode);
+    public N getVertexData(KN key);
+    public List<KN> getAdjencyVertexKeys(KN key);
+    public List<KN> getAllVertexKeys();
+    public int getVertexCounter();
     public void clear();
 }
