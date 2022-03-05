@@ -2,6 +2,7 @@ package nndsa.sem.a.gui;
 
 import java.io.File;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -25,6 +26,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
+import javafx.util.Pair;
 import nndsa.sem.a.railway.RailwayTrackType;
 import nndsa.sem.a.railway.Railway;
 import nndsa.sem.a.railway.RailwayDirectionType;
@@ -55,6 +57,7 @@ public class MainViewController implements Initializable {
 
     private ObservableList<Railway> railwayData = FXCollections.observableArrayList();
     private ObservableList<String> railwayNeighbor = FXCollections.observableArrayList();
+    private ObservableList<String> path = FXCollections.observableArrayList();
     private RailwayInfrastructure railwayInfrastructure;
 
     @Override
@@ -68,6 +71,7 @@ public class MainViewController implements Initializable {
         columnType.setCellValueFactory(new PropertyValueFactory("type"));
 
         listNeighbor.setItems(railwayNeighbor);
+        shortestPath.setItems(path);
 
         tbViewRailway.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             railwayNeighbor.clear();
@@ -151,7 +155,7 @@ public class MainViewController implements Initializable {
         }
 
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setHeaderText("Add neighbor");
+        dialog.setHeaderText("Add neighbor\nRailway " + selected.getKey() + " THERE part will be connected to neighbor's THERE part of railway!");
         dialog.setContentText("Key: ");
 
         Optional<String> result = dialog.showAndWait();
@@ -199,6 +203,7 @@ public class MainViewController implements Initializable {
     }
 
     private void refreshNeighbors(Railway selectedRailway) {
+        path.clear();
         railwayNeighbor.clear();
         railwayNeighbor.addAll(railwayInfrastructure.getConnectedRailwayKeys(selectedRailway.getKey()));
     }
@@ -244,35 +249,89 @@ public class MainViewController implements Initializable {
     }
 
     private void refreshData() {
+        path.clear();
         railwayData.clear();
         railwayNeighbor.clear();
         List<Railway> list = railwayInfrastructure.getSimpleRailways();
         railwayData.addAll(list);
     }
 
+    private int length;
     @FXML
     private void findShortestPath(ActionEvent event) {
-        /*Dialog<Railway> dialog = new Dialog<>();
+        Dialog<List<Pair<Railway, Integer>>> dialog = new Dialog<>();
         dialog.setTitle("Railway");
         dialog.setHeaderText("Add railway");
         dialog.setResizable(false);
 
         Label label1 = new Label("start: ");
-        Label label2 = new Label("start: ");
+        Label label2 = new Label("start direction: ");
         Label label3 = new Label("end: ");
+        Label label4 = new Label("end direction: ");
+        Label label5 = new Label("length of train: ");
         //length of train
         TextField text1 = new TextField();
-        text1.setText(String.valueOf(selected.getLength()));
         TextField text2 = new TextField();
-        text2.setText(String.valueOf(selected.getOccupancy()));
-
+        TextField text3 = new TextField();
+        ChoiceBox choice1 = new ChoiceBox(FXCollections.observableArrayList(RailwayDirectionType.THERE, RailwayDirectionType.BACK));
+        choice1.setValue(RailwayDirectionType.THERE);
+        ChoiceBox choice2 = new ChoiceBox(FXCollections.observableArrayList(RailwayDirectionType.THERE, RailwayDirectionType.BACK));
+        choice2.setValue(RailwayDirectionType.THERE);
 
         GridPane grid = new GridPane();
         grid.add(label1, 1, 1);
         grid.add(text1, 2, 1);
         grid.add(label2, 1, 2);
-        grid.add(text2, 2, 2);
-        dialog.getDialogPane().setContent(grid);*/
+        grid.add(choice1, 2, 2);
+        grid.add(label3, 1, 3);
+        grid.add(text2, 2, 3);
+        grid.add(label4, 1, 4);
+        grid.add(choice2, 2, 4);
+        grid.add(label5, 1, 5);
+        grid.add(text3, 2, 5);
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType buttonTypeOk = new ButtonType("Ok", ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().add(buttonTypeOk);
+        
+        
+        dialog.setResultConverter(new Callback<ButtonType, List<Pair<Railway, Integer>>>() {
+            @Override
+            public List<Pair<Railway, Integer>> call(ButtonType b) {
+                List<Pair<Railway, Integer>> result = null;
+                if (b == buttonTypeOk) {
+                    try {
+                        length = Integer.parseInt(text3.getText());
+                        result = railwayInfrastructure.getShortestPath(
+                                text1.getText(), text2.getText(),
+                                (RailwayDirectionType) choice1.getSelectionModel().getSelectedItem(),
+                                (RailwayDirectionType) choice2.getSelectionModel().getSelectedItem(),
+                                length);
+                    } catch (NumberFormatException e) {
+                        error("Find path", "Length must be number!");
+                    } catch (Exception e) {
+                        error("Find shortest path", e.getMessage());
+                    }
+                }
+                return result;
+            }
+        });
+        Optional<List<Pair<Railway, Integer>>> result = dialog.showAndWait();
+        
+        try {
+            if (result.isPresent() && result.get() != null) {
+                List<String> print = new LinkedList<>();
+                result.get().forEach((railway) -> {
+                    print.add(railway.getKey().getKey() + " [" + railway.getValue() + "]\toccupancy: " + railway.getKey().getOccupancy());
+                });
+                int distance = result.get().get(0).getValue()+length;
+                print.add(0, " MAX DISTANCE: " + distance);
+                path.clear();
+                path.addAll(print);
+            }
+        } catch (Exception e) {
+            error("Add railway", e.getMessage());
+        }
     }
 
     @FXML
@@ -293,7 +352,6 @@ public class MainViewController implements Initializable {
         text1.setText(String.valueOf(selected.getLength()));
         TextField text2 = new TextField();
         text2.setText(String.valueOf(selected.getOccupancy()));
-
 
         GridPane grid = new GridPane();
         grid.add(label1, 1, 1);

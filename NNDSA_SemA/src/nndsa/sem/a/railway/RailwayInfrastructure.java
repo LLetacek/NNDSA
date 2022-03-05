@@ -22,7 +22,7 @@ public class RailwayInfrastructure {
 
     public void addRailway(Railway railway) {
         if (railway.getDirection() == null || railway.getDirection() == RailwayDirectionType.BOTH) {
-            addRailway(railway.getKey(), railway.getLength(), railway.getType());
+            addRailway(railway.getKey(), railway.getLength(), railway.getType(), railway.getOccupancy());
             return;
         }
         infrastructure.addVertex(railway.getKey(), railway);
@@ -198,14 +198,18 @@ public class RailwayInfrastructure {
     private Node getShortestPathByNode(String keyStart, String keyDestination,
             RailwayDirectionType trainDirectionStart, RailwayDirectionType trainDirectionEnd, int lengthOfTrain) {
 
+        if (lengthOfTrain <= 0) {
+            throw new IllegalArgumentException("The length of train must be greather than 0!");
+        }
+
         Railway startPosition = infrastructure.getVertexData(trainDirectionStart.getPrefix().concat(keyStart));
         Railway endPosition = infrastructure.getVertexData(trainDirectionEnd.getPrefix().concat(keyDestination));
 
         if (endPosition.getSpace() < lengthOfTrain || startPosition.getSpace() < lengthOfTrain) {
             throw new IllegalArgumentException("The train is too big!");
         }
-        
-        if(startPosition.getType()==RailwayTrackType.SWITCH || endPosition.getType()==RailwayTrackType.SWITCH) {
+
+        if (startPosition.getType() == RailwayTrackType.SWITCH || endPosition.getType() == RailwayTrackType.SWITCH) {
             throw new IllegalArgumentException("¨Start or end is on the Railroad switch!");
         }
 
@@ -246,11 +250,12 @@ public class RailwayInfrastructure {
                     tmp.railway.getType(),
                     tmp.railway.getOccupancy());
 
-            path.add(new Pair<>(simple, tmp.distance));
+            boolean firstNode = !firstIteration && realKeyStart.equals(tmp.railway.getKey());
+            path.add(new Pair<>(simple, (firstNode) ? 0 : tmp.distance));
 
-            if (!firstIteration && realKeyStart.equals(simple.getKey())) {
+            if (firstNode) {
                 break;
-            } else if (firstIteration && realKeyStart.equals(simple.getKey())) {
+            } else if (firstIteration && realKeyStart.equals(tmp.railway.getKey())) {
                 firstIteration = false;
             }
 
@@ -312,7 +317,7 @@ public class RailwayInfrastructure {
             }
         });
     }
-    
+
     public void updateRailway(String key, int length, int occupancy) {
         Railway there = infrastructure.getVertexData(RailwayDirectionType.THERE.getPrefix().concat(key));
         there.setLength(length);

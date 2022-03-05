@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="632.0" prefWidth="704.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nndsa.sem.a.gui.MainViewController">
+<AnchorPane id="AnchorPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="632.0" prefWidth="749.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nndsa.sem.a.gui.MainViewController">
    <children>
       <TableView fx:id="tbViewRailway" layoutX="16.0" layoutY="51.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="487.0" prefWidth="315.0">
         <columns>
@@ -24,8 +24,8 @@
       <Button layoutX="361.0" layoutY="589.0" mnemonicParsing="false" onAction="#deleteNeighbor" prefHeight="32.0" prefWidth="133.0" text="Delete Neighbor" />
       <Button layoutX="271.0" layoutY="8.0" mnemonicParsing="false" onAction="#save" prefHeight="32.0" prefWidth="60.0" text="SAVE" />
       <Button layoutX="353.0" layoutY="8.0" mnemonicParsing="false" onAction="#load" prefHeight="32.0" prefWidth="60.0" text="LOAD" />
-      <Button layoutX="567.0" layoutY="569.0" mnemonicParsing="false" onAction="#findShortestPath" prefHeight="32.0" prefWidth="74.0" text="Dijkstra" />
-      <ListView fx:id="shortestPath" layoutX="525.0" layoutY="51.0" prefHeight="487.0" prefWidth="157.0" />
+      <Button layoutX="591.0" layoutY="565.0" mnemonicParsing="false" onAction="#findShortestPath" prefHeight="32.0" prefWidth="74.0" text="Dijkstra" />
+      <ListView fx:id="shortestPath" layoutX="525.0" layoutY="51.0" prefHeight="487.0" prefWidth="205.0" />
       <Button layoutX="180.0" layoutY="545.0" mnemonicParsing="false" onAction="#updateRailway" prefHeight="32.0" prefWidth="133.0" text="Update Railway" />
       <ListView fx:id="listNeighbor" layoutX="345.0" layoutY="82.0" prefHeight="456.0" prefWidth="163.0" />
       <Label layoutX="392.0" layoutY="51.0" text="Neighbors">

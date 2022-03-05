@@ -69,7 +69,7 @@ public class Railway {
     }
 
     public String getKeyWithoutPrefix() {
-        return key.substring(direction.getPrefix().length());
+        return (direction==RailwayDirectionType.BOTH) ? getKey() : key.substring(direction.getPrefix().length());
     }
 
     public RailwayTrackType getType() {
