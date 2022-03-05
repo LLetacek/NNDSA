@@ -24,14 +24,12 @@ public class Railway {
         if (occupancy < 0 || length <= 0) {
             throw new IllegalArgumentException("Length must be greather than 0 and occupancy cannot be less than 0!");
         }
-        
+        checkOccupancyLength(occupancy,length);
         this.key = (direction == RailwayDirectionType.BOTH) ? key : direction.getPrefix().concat(key);
         this.length = length;
         this.direction = direction;
         this.type = type;
         this.occupancy = occupancy;
-        
-        checkOccupancyLength();
     }
 
     public int getLength() {
@@ -51,13 +49,13 @@ public class Railway {
             throw new IllegalArgumentException("Length must be greater than or equal to 0!");
         }
         
-        checkOccupancyLength();
+        checkOccupancyLength(this.occupancy, length);
         
         this.length = length;
     }
 
-    private void checkOccupancyLength() throws IllegalArgumentException {
-        if (occupancy > length) {
+    private void checkOccupancyLength(int newOccupancy, int newLength) throws IllegalArgumentException {
+        if (newOccupancy > newLength) {
             throw new IllegalArgumentException("Occupancy must be less than or equal to length!");
         }
     }
@@ -87,7 +85,7 @@ public class Railway {
             throw new IllegalArgumentException("Occupancy cannot be less than 0!");
         }
         
-        checkOccupancyLength();
+        checkOccupancyLength(occupancy, this.length);
         
         this.occupancy = occupancy;
     }

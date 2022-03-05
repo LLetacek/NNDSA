@@ -204,6 +204,10 @@ public class RailwayInfrastructure {
         if (endPosition.getSpace() < lengthOfTrain || startPosition.getSpace() < lengthOfTrain) {
             throw new IllegalArgumentException("The train is too big!");
         }
+        
+        if(startPosition.getType()==RailwayTrackType.SWITCH || endPosition.getType()==RailwayTrackType.SWITCH) {
+            throw new IllegalArgumentException("¨Start or end is on the Railroad switch!");
+        }
 
         HashMap<String, Node> map = new HashMap<>();
         PriorityQueue<Node> keys = new PriorityQueue<>((a, b) -> {
@@ -307,6 +311,15 @@ public class RailwayInfrastructure {
                 map.put(key, new Node(Integer.MAX_VALUE, infrastructure.getVertexData(key), null));
             }
         });
+    }
+    
+    public void updateRailway(String key, int length, int occupancy) {
+        Railway there = infrastructure.getVertexData(RailwayDirectionType.THERE.getPrefix().concat(key));
+        there.setLength(length);
+        there.setOccupancy(occupancy);
+        Railway back = infrastructure.getVertexData(RailwayDirectionType.BACK.getPrefix().concat(key));
+        back.setLength(length);
+        back.setOccupancy(occupancy);
     }
 
     public void clear() {

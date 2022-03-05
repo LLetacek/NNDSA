@@ -59,9 +59,6 @@ public class MainViewController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //ObservableList<RailwayTrackType> options = FXCollections.observableArrayList(RailwayTrackType.values());
-        //txtFieldType.getItems().addAll(options);
-        //txtFieldType.setValue(RailwayTrackType.DIRECT);
         railwayInfrastructure = new RailwayInfrastructure();
 
         tbViewRailway.setItems(railwayData);
@@ -255,12 +252,93 @@ public class MainViewController implements Initializable {
 
     @FXML
     private void findShortestPath(ActionEvent event) {
+        /*Dialog<Railway> dialog = new Dialog<>();
+        dialog.setTitle("Railway");
+        dialog.setHeaderText("Add railway");
+        dialog.setResizable(false);
 
+        Label label1 = new Label("start: ");
+        Label label2 = new Label("start: ");
+        Label label3 = new Label("end: ");
+        //length of train
+        TextField text1 = new TextField();
+        text1.setText(String.valueOf(selected.getLength()));
+        TextField text2 = new TextField();
+        text2.setText(String.valueOf(selected.getOccupancy()));
+
+
+        GridPane grid = new GridPane();
+        grid.add(label1, 1, 1);
+        grid.add(text1, 2, 1);
+        grid.add(label2, 1, 2);
+        grid.add(text2, 2, 2);
+        dialog.getDialogPane().setContent(grid);*/
     }
 
     @FXML
     private void updateRailway(ActionEvent event) {
+        Railway selected = tbViewRailway.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            error("Add", "Not selected item!");
+            return;
+        }
+        Dialog<Railway> dialog = new Dialog<>();
+        dialog.setTitle("Railway");
+        dialog.setHeaderText("Add railway");
+        dialog.setResizable(false);
 
+        Label label1 = new Label("Length: ");
+        Label label2 = new Label("Occupancy: ");
+        TextField text1 = new TextField();
+        text1.setText(String.valueOf(selected.getLength()));
+        TextField text2 = new TextField();
+        text2.setText(String.valueOf(selected.getOccupancy()));
+
+
+        GridPane grid = new GridPane();
+        grid.add(label1, 1, 1);
+        grid.add(text1, 2, 1);
+        grid.add(label2, 1, 2);
+        grid.add(text2, 2, 2);
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType buttonTypeOk = new ButtonType("Ok", ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().add(buttonTypeOk);
+
+        dialog.setResultConverter(new Callback<ButtonType, Railway>() {
+            @Override
+            public Railway call(ButtonType b) {
+                int length;
+                int occupancy;
+
+                if (b == buttonTypeOk) {
+                    try {
+                        length = Integer.parseInt(text1.getText());
+                        occupancy = Integer.parseInt(text2.getText());
+                        selected.setLength(length);
+                        selected.setOccupancy(occupancy);
+                    } catch (NumberFormatException e) {
+                        error("Add railway", "Occupancy and length must be number!");
+                        return null;
+                    } catch (Exception e) {
+                        error("Add railway", e.getMessage());
+                        return null;
+                    }
+                    return selected;
+                }
+                return null;
+            }
+        });
+        Optional<Railway> result = dialog.showAndWait();
+
+        try {
+            if (result.isPresent() && result.get() != null) {
+                railwayInfrastructure.updateRailway(result.get().getKey(), result.get().getLength(), result.get().getOccupancy());
+                refreshData();
+            }
+        } catch (Exception e) {
+            error("Add railway", e.getMessage());
+        }
     }
 
     private void error(String headline, String content) {
