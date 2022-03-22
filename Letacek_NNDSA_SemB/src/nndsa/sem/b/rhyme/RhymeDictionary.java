@@ -33,6 +33,14 @@ public class RhymeDictionary {
         return true;
     }
     
+    public int size() {
+        return words.size();
+    }
+    
+    public void clear() {
+        words.clear();
+    }
+    
     public List<String> getWordsThatRhyme(String finalSubstring) {
         return words.getSimilarNodes(finalSubstring);
     }

@@ -12,4 +12,5 @@ public interface ITable<K, V> {
     public V remove(K key);
     public boolean isEmpty();
     public V getValue(K key);
+    public int size();
 }

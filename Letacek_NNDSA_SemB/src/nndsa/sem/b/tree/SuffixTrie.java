@@ -15,13 +15,16 @@ import javafx.util.Pair;
 public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
 
     private Node root;
+    private int counter;
 
     public SuffixTrie() {
         this.root = new Node(null, null);
+        counter = 0;
     }
 
     @Override
     public void clear() {
+        counter = 0;
         root.children.clear();
     }
 
@@ -38,6 +41,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
                 throw new IllegalArgumentException("Already have " + key);
             } else {
                 node.value = value;
+                ++counter;
             }
             return;
         }
@@ -50,6 +54,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
             parent = newNode;
             ++suffixCounter;
         }
+        ++counter;
     }
 
     @Override
@@ -58,6 +63,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
         if (!toRemove.children.isEmpty()) {
             V value = toRemove.value;
             toRemove.value = null;
+            --counter;
             return value;
         }
 
@@ -72,6 +78,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
             childrenKey = parent.key;
             parent = parent.parent;
         }
+        --counter;
         return toRemove.value;
     }
 
@@ -132,7 +139,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
                 stack.add(item);
             }
 
-            if (SuffixTrie.this.isWord(node)) {
+            if (isWord(node)) {
                 list.add(node.value);
             }
         }
@@ -142,6 +149,11 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
 
     private boolean isWord(Node node) {
         return node.value != null;
+    }
+
+    @Override
+    public int size() {
+        return counter;
     }
 
     private class Node {
