@@ -162,5 +162,42 @@ public class SuffixTrieTest {
         List<String> list = instance.getSimilarNodes("dar");
         assertEquals(2, list.size());
     }
+    
+    @Test
+    public void testSize1() {
+        SuffixTrie<String, String> instance = new SuffixTrie<>();
+        String word = "dar";
+        instance.add(word, word);
+        word = "nazdar";
+        instance.add(word, word);
+        word = "bazar";
+        instance.add(word, word);
+        assertEquals(3, instance.size());
+    }
+    
+    @Test
+    public void testSize2() {
+        SuffixTrie<String, String> instance = new SuffixTrie<>();
+        String word = "dar";
+        instance.add(word, word);
+        word = "nazdar";
+        instance.add(word, word);
+        word = "bazar";
+        instance.add(word, word);
+        instance.remove(word);
+        assertEquals(2, instance.size());
+    }
 
+    @Test
+    public void testSize3() {
+        SuffixTrie<String, String> instance = new SuffixTrie<>();
+        String word = "dar";
+        instance.add(word, word);
+        word = "nazdar";
+        instance.add(word, word);
+        word = "bazar";
+        instance.add(word, word);
+        instance.clear();
+        assertEquals(0, instance.size());
+    }
 }
