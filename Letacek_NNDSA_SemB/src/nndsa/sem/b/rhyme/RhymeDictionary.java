@@ -41,7 +41,7 @@ public class RhymeDictionary {
         words.clear();
     }
     
-    public List<String> getWordsThatRhyme(String finalSubstring) {
+    public List<String> getWordsEndingIn(String finalSubstring) {
         return words.getValuesEndingWithKey(finalSubstring);
     }
 }

@@ -21,7 +21,7 @@ public class Serialization {
         PrintWriter pw = new PrintWriter(fileBase, "UTF-8");
         List<String> connection = new LinkedList<>();
         
-        dictionary.getWordsThatRhyme("").forEach((word) -> {
+        dictionary.getWordsEndingIn("").forEach((word) -> {
             // TODO
         });
         connection.forEach(pw::print);
