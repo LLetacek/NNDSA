@@ -42,6 +42,6 @@ public class RhymeDictionary {
     }
     
     public List<String> getWordsThatRhyme(String finalSubstring) {
-        return words.getSimilarNodes(finalSubstring);
+        return words.getValuesEndingWithKey(finalSubstring);
     }
 }

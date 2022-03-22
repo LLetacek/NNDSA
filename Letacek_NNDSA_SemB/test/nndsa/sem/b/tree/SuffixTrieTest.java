@@ -146,7 +146,7 @@ public class SuffixTrieTest {
         instance.add(word, word);
         word = "bazar";
         instance.add(word, word);
-        List<String> list = instance.getSimilarNodes("ar");
+        List<String> list = instance.getValuesEndingWithKey("ar");
         assertEquals(3, list.size());
     }
 
@@ -159,7 +159,7 @@ public class SuffixTrieTest {
         instance.add(word, word);
         word = "bazar";
         instance.add(word, word);
-        List<String> list = instance.getSimilarNodes("dar");
+        List<String> list = instance.getValuesEndingWithKey("dar");
         assertEquals(2, list.size());
     }
     

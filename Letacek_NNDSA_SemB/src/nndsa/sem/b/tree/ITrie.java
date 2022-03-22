@@ -8,5 +8,5 @@ import java.util.List;
  * @param <K> Key
  */
 public interface ITrie<K extends CharSequence, V> extends ITable<K, V> {
-    List<V> getSimilarNodes(K key);
+    List<V> getValuesEndingWithKey(K key);
 }

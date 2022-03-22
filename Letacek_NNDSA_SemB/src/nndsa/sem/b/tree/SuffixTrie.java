@@ -127,7 +127,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
     }
 
     @Override
-    public List<V> getSimilarNodes(K key) {
+    public List<V> getValuesEndingWithKey(K key) {
         Node node = (key == null || key.length()==0) ? root : findLastNodeWithIndex(key).getValue();
         Set<V> list = new LinkedHashSet<>();
 
