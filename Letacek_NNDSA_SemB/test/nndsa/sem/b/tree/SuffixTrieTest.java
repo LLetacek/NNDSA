@@ -74,6 +74,15 @@ public class SuffixTrieTest {
         instance.add(word, word);
         instance.add(word, word);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testAdd4() {
+        SuffixTrie<String, String> instance = new SuffixTrie<>();
+        String word = "dar";
+        instance.add(word, word);
+        String biggerWord = "DAR";
+        instance.add(biggerWord, biggerWord);
+    }
 
     /**
      * Test of remove method, of class SuffixTrie.
