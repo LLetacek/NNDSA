@@ -30,6 +30,9 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
 
     @Override
     public void add(K key, V value) {
+        if(key.length()==0 || key == null)
+            throw new IllegalArgumentException("Can't add empty word!");
+
         int lastIndex = key.length() - 1;
 
         Pair<Integer, Node> findLastKnownSubstring = findLastNodeWithIndex(key);
@@ -48,9 +51,9 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
 
         Node parent = node;
         while (suffixCounter != key.length()) {
-            Character character = key.charAt(lastIndex - suffixCounter);
-            Node newNode = new Node(character, (suffixCounter == lastIndex) ? value : null, parent);
-            parent.children.put(character, newNode);
+            CharSequence characterSequence = key.subSequence(lastIndex - suffixCounter, key.length());
+            Node newNode = new Node(characterSequence, (suffixCounter == lastIndex) ? value : null, parent);
+            parent.children.put(Character.toLowerCase(characterSequence.charAt(0)), newNode);
             parent = newNode;
             ++suffixCounter;
         }
@@ -68,14 +71,14 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
         }
 
         Node parent = toRemove.parent;
-        Character childrenKey = toRemove.key;
+        Character childrenKey = toRemove.getFirstCharOfKey();
 
         while (parent != null) {
             parent.children.remove(childrenKey);
             if (!parent.children.isEmpty() || SuffixTrie.this.isWord(parent) || parent == root) {
                 break;
             }
-            childrenKey = parent.key;
+            childrenKey = parent.getFirstCharOfKey();
             parent = parent.parent;
         }
         --counter;
@@ -107,12 +110,15 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
     private Pair<Integer, Node> findLastNodeWithIndex(K key) {
         Node node = root;
         int suffixCounter = 0;
+        if(key.length()==0) 
+            return new Pair<>(suffixCounter, node);
+        
         int lastIndex = key.length() - 1;
 
         Node result;
         do {
             result = node;
-            node = node.children.get(key.charAt(lastIndex - suffixCounter));
+            node = node.children.get(Character.toLowerCase(key.charAt(lastIndex - suffixCounter)));
             ++suffixCounter;
 
             if (node != null && suffixCounter == key.length()) {
@@ -128,7 +134,11 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
 
     @Override
     public List<V> getValuesEndingWithKey(K key) {
-        Node node = (key == null || key.length()==0) ? root : findLastNodeWithIndex(key).getValue();
+        Pair<Integer, Node> lastNode = findLastNodeWithIndex(key);
+        if(key.length() != lastNode.getKey())
+            return new LinkedList<>();
+        
+        Node node = (key == null || key.length() == 0) ? root : lastNode.getValue();
         Set<V> list = new LinkedHashSet<>();
 
         Stack<Node> stack = new Stack<>();
@@ -148,7 +158,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
     }
 
     private boolean isWord(Node node) {
-        return node.value != null;
+        return node.value != null && node != root;
     }
 
     @Override
@@ -159,19 +169,27 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
     private class Node {
 
         Node parent;
-        Character key;
+        CharSequence key;
         V value;
         HashMap<Character, Node> children;
 
-        public Node(Character key, V value) {
-            this(key, value, null);
+        public Node(CharSequence uniqKeyForTree, V value) {
+            this(uniqKeyForTree, value, null);
         }
 
-        public Node(Character key, V value, Node parent) {
-            this.key = key;
+        public Node(CharSequence uniqKeyForTree, V value, Node parent) {
+            this.key = uniqKeyForTree;
             this.value = value;
             this.children = new HashMap<>();
             this.parent = parent;
+        }
+
+        private boolean isNullOrEmpty(CharSequence charSequence) {
+            return charSequence == null || charSequence.toString().isEmpty();
+        }
+
+        public Character getFirstCharOfKey() {
+            return Character.toLowerCase(key.charAt(0));
         }
     }
 }

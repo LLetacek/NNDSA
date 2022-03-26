@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
+import jdk.nashorn.internal.ir.ContinueNode;
 
 /**
  *
@@ -19,24 +20,26 @@ public class Serialization {
     
     public static void save(String fileBase, RhymeDictionary dictionary) throws FileNotFoundException, UnsupportedEncodingException {
         PrintWriter pw = new PrintWriter(fileBase, "UTF-8");
-        List<String> connection = new LinkedList<>();
-        
-        dictionary.getWordsEndingIn("").forEach((word) -> {
-            // TODO
-        });
-        connection.forEach(pw::print);
+        dictionary.getWordsEndingIn("").forEach(pw::println);
         pw.close();
     }
 
-    public static void load(String fileBase, RhymeDictionary dictionary) throws FileNotFoundException, UnsupportedEncodingException, IOException {
+    private static boolean resultOfLoad;
+    public static boolean load(String fileBase, RhymeDictionary dictionary) throws FileNotFoundException, UnsupportedEncodingException, IOException {
+        resultOfLoad = true;
         dictionary.clear();
 
         try (Stream<String> file = Files.lines(Paths.get(fileBase), StandardCharsets.UTF_8)) {
             file.filter(t -> t != null)
                     .forEach((String line) -> {
-                            // TODO
+                        try {
+                            dictionary.insert(line);
+                        } catch (Exception ex) {
+                            resultOfLoad = false;
+                        }
                     });
         }
+        return resultOfLoad;
     }
     
 }
