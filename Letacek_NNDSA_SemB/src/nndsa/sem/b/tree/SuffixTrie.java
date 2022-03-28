@@ -30,7 +30,7 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
 
     @Override
     public void add(K key, V value) {
-        if(key.length()==0 || key == null)
+        if(key == null || key.length()==0)
             throw new IllegalArgumentException("Can't add empty word!");
 
         int lastIndex = key.length() - 1;
@@ -135,10 +135,10 @@ public class SuffixTrie<K extends CharSequence, V> implements ITrie<K, V> {
     @Override
     public List<V> getValuesEndingWithKey(K key) {
         Pair<Integer, Node> lastNode = findLastNodeWithIndex(key);
-        if(key.length() != lastNode.getKey())
+        if(key == null || key.length() != lastNode.getKey())
             return new LinkedList<>();
         
-        Node node = (key == null || key.length() == 0) ? root : lastNode.getValue();
+        Node node = (key.length() == 0) ? root : lastNode.getValue();
         Set<V> list = new LinkedHashSet<>();
 
         Stack<Node> stack = new Stack<>();
