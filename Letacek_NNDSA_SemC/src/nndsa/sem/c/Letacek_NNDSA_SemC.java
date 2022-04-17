@@ -18,7 +18,11 @@ public class Letacek_NNDSA_SemC {
         
         try {
             serialization.buildBaseToBinaryFile("./main.csv", "./out");
-            searchEngine.findInBinaryBase("kopie", "./out",SearchType.BINARY);
+            System.out.println(searchEngine.findInBinaryBase("kopie", "./out",SearchType.BINARY));
+            System.out.println(searchEngine.findInBinaryBase("kopie", "./out",SearchType.INTERPOLATION));
+            
+            System.out.println(searchEngine.findInBinaryBase("abakus", "./out",SearchType.BINARY));
+            System.out.println(searchEngine.findInBinaryBase("abakus", "./out",SearchType.INTERPOLATION));
         } catch(Exception ex) {
             System.err.println(ex.getMessage());
         }

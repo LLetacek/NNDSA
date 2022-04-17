@@ -19,7 +19,6 @@ public class SearchEngine {
     private int sizeOfHeadElementInBytes;
     private int sizeOfUnitedElement;
     private int sizeOfString;
-    private int markLimit;
     private List<Word> buffer;
 
     public SearchEngine() {
@@ -28,7 +27,6 @@ public class SearchEngine {
         sizeOfHeadElementInBytes = 0;
         sizeOfUnitedElement = 0;
         sizeOfString = 0;
-        markLimit = 0;
         buffer = new ArrayList<>();
     }
     
@@ -58,7 +56,6 @@ public class SearchEngine {
         sizeOfHeadElementInBytes = readInteger(inputStream);
         sizeOfUnitedElement = readInteger(inputStream);
         sizeOfString = (sizeOfHeadElementInBytes - Integer.BYTES) / 2;
-        markLimit = numberOfBlocks * (sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement));
     }
 
     private int findInBlock(SearchType type, BufferedInputStream inputStream, String key, int sizeOfBlock) throws IndexOutOfBoundsException, IOException {
@@ -71,16 +68,16 @@ public class SearchEngine {
         String startBlockWord;
         String endBlockWord;
         while(true) {
+            mark(inputStream, endPosition, startPosition);
             shift = (type==SearchType.BINARY)
                     ? (double) 1/2
                     : calculateShiftPosition(inputStream, key, startPosition, endPosition);
 
-            inputStream.mark(getMarkLimit(shift));
             
             shiftPosition = (int)((endPosition - startPosition) * shift);
             skip(inputStream, shiftPosition * sizeOfBlock);
             
-            // TODO check of block
+            // check of block
             ++counterOfBlockTransfers;
             startBlockWord = readWord(inputStream);
             endBlockWord = readWord(inputStream);
@@ -105,6 +102,10 @@ public class SearchEngine {
         }
         return counterOfBlockTransfers;
     }
+
+    private void mark(BufferedInputStream inputStream, int endPosition, int startPosition) {
+        inputStream.mark((endPosition - startPosition) * (sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement)));
+    }
     
     private void loadBlock(BufferedInputStream inputStream) throws IOException {
         buffer.clear();
@@ -127,13 +128,21 @@ public class SearchEngine {
         return new BigInteger(value).intValue();
     }
 
-    private double calculateShiftPosition(BufferedInputStream inputStream, String key, int startPosition, int endPosition) {
-        return (double) 1/2;
-    }
-    
-    private int getMarkLimit(double usedPart) {
-        markLimit = (int)Math.ceil(markLimit * (double) usedPart);
-        return markLimit;
+    private double calculateShiftPosition(BufferedInputStream inputStream, String key, int startPosition, int endPosition) throws IOException {
+        //read
+        String startWord = readWord(inputStream);
+        //reset
+        inputStream.reset();
+        // +1 -> increase the space so that the mark is still valid -> because of reading of head)
+        mark(inputStream, endPosition+1, startPosition);
+        skip(inputStream, (endPosition - startPosition) * (sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement)));
+        //read
+        readWord(inputStream);
+        String endWord = readWord(inputStream);
+        //reset
+        inputStream.reset();
+        mark(inputStream, endPosition, startPosition);
+        return (double) key.compareTo(startWord) / (endWord.compareTo(startWord));
     }
 
     private void skip(BufferedInputStream inputStream, long bytes) throws IOException {
