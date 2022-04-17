@@ -1,5 +1,6 @@
 package nndsa.sem.c.entity;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -7,6 +8,7 @@ import java.nio.charset.StandardCharsets;
  * @author ludek
  */
 public class Word implements Element<String> {
+    public static final Charset CHARSET = StandardCharsets.UTF_16;
     private final int PADDING = 30;
     private final String czechWord;
     private final String englishWord;
@@ -25,27 +27,27 @@ public class Word implements Element<String> {
     }
 
     public String getCzechWord() {
-        return padding(czechWord);
+        return czechWord;
     }
 
     public String getEnglishWord() {
-        return padding(englishWord);
+        return englishWord;
     }
 
     public String getGermanWord() {
-        return padding(germanWord);
+        return germanWord;
     }
     
     public byte[] getCzechWordBytes() {
-        return padding(czechWord).getBytes(StandardCharsets.UTF_16);
+        return padding(czechWord).getBytes(CHARSET);
     }
 
     public byte[] getEnglishWordBytes() {
-        return padding(englishWord).getBytes(StandardCharsets.UTF_16);
+        return padding(englishWord).getBytes(CHARSET);
     }
 
     public byte[] getGermanWordBytes() {
-        return padding(germanWord).getBytes(StandardCharsets.UTF_16);
+        return padding(germanWord).getBytes(CHARSET);
     }
 
     private String padding(String word) {

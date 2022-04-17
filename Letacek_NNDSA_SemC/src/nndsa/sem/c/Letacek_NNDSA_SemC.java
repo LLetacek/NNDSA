@@ -2,6 +2,7 @@
 package nndsa.sem.c;
 
 import nndsa.sem.c.entity.SearchEngine;
+import nndsa.sem.c.entity.SearchType;
 import nndsa.sem.c.serialization.Serialization;
 
 /**
@@ -17,7 +18,7 @@ public class Letacek_NNDSA_SemC {
         
         try {
             serialization.buildBaseToBinaryFile("./main.csv", "./out");
-            searchEngine.findInBinaryBase("", "./out");
+            searchEngine.findInBinaryBase("kopie", "./out",SearchType.BINARY);
         } catch(Exception ex) {
             System.err.println(ex.getMessage());
         }

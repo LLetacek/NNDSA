@@ -17,8 +17,16 @@ import java.util.stream.Stream;
  * @author ludek
  */
 public class Serialization {
-    private final int ELEMENTS_IN_BLOCKS = 70;
+    private final int elementsInBlock;
     private List<Word> inventory = new LinkedList<>();
+
+    public Serialization() {
+        this(50);
+    }
+
+    public Serialization(int elementsInBlock) {
+        this.elementsInBlock = elementsInBlock;
+    }
     
     public void buildBaseToBinaryFile(String csvFileBase, String binaryFileBase) throws IOException {
         loadBase(csvFileBase);
@@ -54,7 +62,7 @@ public class Serialization {
         file = new FileOutputStream(binaryFileBase);
         out = new BufferedOutputStream(file);
         
-        int elementsInBlock = ELEMENTS_IN_BLOCKS;
+        int elementsInBlock = this.elementsInBlock;
         writeHead(out, elementsInBlock);
         writeBlocks(out, elementsInBlock);
         
@@ -77,15 +85,11 @@ public class Serialization {
         writeInteger(out, elementsInBlock);
         writeInteger(out, sizeOfHeadElementInBytes);
         writeInteger(out, sizeOfUnitedElement);
-        
-        //TODO delete (control print out)
-        System.out.println(numberOfBlocks + " - " + elementsInBlock + " - " + sizeOfHeadElementInBytes + " - " + sizeOfUnitedElement);
     }
 
     private void writeBlocks(BufferedOutputStream out, int elementsInBlock) throws IOException {
         Word elementPadding = new Word();
         int indexStart = 0;
-        int counter = 0;
         while(true) {
             if(indexStart>inventory.size())
                 break;
@@ -99,17 +103,9 @@ public class Serialization {
             out.write(blockToWrite.get(blockToWrite.size()-1).getCzechWordBytes());
             writeInteger(out, blockToWrite.size()-1);
             
-            //TODO delete (control print out)
-            counter++;
-            System.out.println(counter + ":" + blockToWrite.get(0).getCzechWordBytes().length + " - " + blockToWrite.get(blockToWrite.size()-1).getCzechWordBytes().length + " - " + Integer.BYTES + " = " +
-                    (blockToWrite.get(0).getCzechWordBytes().length + blockToWrite.get(blockToWrite.size()-1).getCzechWordBytes().length + Integer.BYTES));
-            
             // block elements
             for(int i=0; i<(elementsInBlock); ++i) {
                 Word toWrite = (i>=blockToWrite.size()) ? elementPadding : blockToWrite.get(i);
-                System.out.println("    -> " + toWrite.getCzechWordBytes().length + " - " +  toWrite.getEnglishWordBytes().length + " - " + toWrite.getGermanWordBytes().length + " = " +
-                    (toWrite.getCzechWordBytes().length + toWrite.getEnglishWordBytes().length +toWrite.getGermanWordBytes().length));
-            
                 out.write(toWrite.getCzechWordBytes());
                 out.write(toWrite.getEnglishWordBytes());
                 out.write(toWrite.getGermanWordBytes());
