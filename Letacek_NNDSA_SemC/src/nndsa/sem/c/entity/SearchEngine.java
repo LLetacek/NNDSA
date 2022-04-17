@@ -4,16 +4,20 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import static java.lang.Math.max;
 import java.math.BigInteger;
+import static java.math.BigInteger.ZERO;
 import java.util.ArrayList;
+import static java.util.Arrays.copyOf;
 import java.util.List;
+import javafx.util.Pair;
 
 /**
  *
  * @author ludek
  */
 public class SearchEngine {
-    
+
     private int numberOfBlocks;
     private int elementsInBlock;
     private int sizeOfHeadElementInBytes;
@@ -29,25 +33,54 @@ public class SearchEngine {
         sizeOfString = 0;
         buffer = new ArrayList<>();
     }
-    
-    public int findInBinaryBase(String key, String binaryFileBase, SearchType type) throws FileNotFoundException, IOException {
+
+    public List<Word> getBuffer() {
+        return buffer;
+    }
+
+    private Word getWord(String key, SearchType type) {
+        double shift = (double) 1 / 2;
+        int startPosition = 0;
+        int endPosition = buffer.size() - 1;
+        int index = 0;
+
+        while (true) {
+            if (type == SearchType.INTERPOLATION) {
+                String startWord = buffer.get(startPosition).getKey();
+                String endWord = buffer.get(endPosition).getKey();
+                getInterpolationShift(key, startWord, endWord, endPosition - startPosition);
+            }
+            index = startPosition + (int) ((endPosition - startPosition) * shift);
+            if (key.equals(buffer.get(index).getKey())) {
+                break;
+            } else if (buffer.get(index).getKey().compareTo(key) < 0) {
+                startPosition = index + 1;
+            } else if (key.compareTo(buffer.get(index).getKey()) < 0) {
+                endPosition = index - 1;
+            }
+        }
+        
+        return buffer.get(index);
+    }
+
+    public Pair<Integer, Word> findInBinaryBase(String key, String binaryFileBase, SearchType type) throws FileNotFoundException, IOException {
         int counterOfBlockTransfers = 0;
 
         BufferedInputStream inputStream;
         FileInputStream file;
         file = new FileInputStream(binaryFileBase);
         inputStream = new BufferedInputStream(file);
-        
+
         readHead(inputStream);
         int sizeOfBlock = sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement);
-        
+
         counterOfBlockTransfers = findInBlock(type, inputStream, key, sizeOfBlock);
         loadBlock(inputStream);
-        
+
         inputStream.close();
         file.close();
-        
-        return counterOfBlockTransfers;
+
+        return new Pair<>(counterOfBlockTransfers, getWord(key, type));
     }
 
     private void readHead(BufferedInputStream inputStream) throws IOException {
@@ -60,44 +93,42 @@ public class SearchEngine {
 
     private int findInBlock(SearchType type, BufferedInputStream inputStream, String key, int sizeOfBlock) throws IndexOutOfBoundsException, IOException {
         // -1 => pointer on last block
-        int endPosition = numberOfBlocks-1;
+        int endPosition = numberOfBlocks - 1;
         int startPosition = 0;
         int counterOfBlockTransfers = 0;
         int shiftPosition = 0;
         double shift;
         String startBlockWord;
         String endBlockWord;
-        while(true) {
+        while (true) {
             mark(inputStream, endPosition, startPosition);
-            shift = (type==SearchType.BINARY)
-                    ? (double) 1/2
+            shift = (type == SearchType.BINARY)
+                    ? (double) 1 / 2
                     : calculateShiftPosition(inputStream, key, startPosition, endPosition);
 
-            
-            shiftPosition = (int)((endPosition - startPosition) * shift);
+            shiftPosition = (int) ((endPosition - startPosition) * shift);
             skip(inputStream, shiftPosition * sizeOfBlock);
-            
+
             // check of block
             ++counterOfBlockTransfers;
             startBlockWord = readWord(inputStream);
             endBlockWord = readWord(inputStream);
-            if(startBlockWord.compareTo(key) <= 0 && key.compareTo(endBlockWord) <= 0) {
+            if (startBlockWord.compareTo(key) <= 0 && key.compareTo(endBlockWord) <= 0) {
                 break;
             }
-            
-            if(startPosition==endPosition) {
+
+            if (startPosition == endPosition) {
                 throw new IndexOutOfBoundsException("Not found");
-            }
-            else if(key.compareTo(startBlockWord) < 0) {
+            } else if (key.compareTo(startBlockWord) < 0) {
                 // reset -> after mark (in beginning after the head)
-                if(inputStream.markSupported()) 
+                if (inputStream.markSupported()) {
                     inputStream.reset();
-                endPosition = shiftPosition - 1;
-            }
-            else if(endBlockWord.compareTo(key) < 0) {
+                }
+                endPosition = startPosition + shiftPosition - 1;
+            } else if (endBlockWord.compareTo(key) < 0) {
                 // mark -> finish reading element's head + block
                 skip(inputStream, Integer.BYTES + (elementsInBlock * sizeOfUnitedElement));
-                startPosition = shiftPosition + 1;
+                startPosition = startPosition + shiftPosition + 1;
             }
         }
         return counterOfBlockTransfers;
@@ -106,16 +137,16 @@ public class SearchEngine {
     private void mark(BufferedInputStream inputStream, int endPosition, int startPosition) {
         inputStream.mark((endPosition - startPosition) * (sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement)));
     }
-    
+
     private void loadBlock(BufferedInputStream inputStream) throws IOException {
         buffer.clear();
         int endPosition = readInteger(inputStream);
-        
-        for(int i=0; i<=endPosition; ++i) {
+
+        for (int i = 0; i <= endPosition; ++i) {
             buffer.add(new Word(readWord(inputStream), readWord(inputStream), readWord(inputStream)));
         }
     }
-    
+
     private String readWord(BufferedInputStream inputStream) throws IOException {
         byte[] value = new byte[sizeOfString];
         inputStream.read(value);
@@ -134,7 +165,7 @@ public class SearchEngine {
         //reset
         inputStream.reset();
         // +1 -> increase the space so that the mark is still valid -> because of reading of head)
-        mark(inputStream, endPosition+1, startPosition);
+        mark(inputStream, endPosition + 1, startPosition);
         skip(inputStream, (endPosition - startPosition) * (sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement)));
         //read
         readWord(inputStream);
@@ -142,7 +173,22 @@ public class SearchEngine {
         //reset
         inputStream.reset();
         mark(inputStream, endPosition, startPosition);
-        return (double) key.compareTo(startWord) / (endWord.compareTo(startWord));
+        double shift = getInterpolationShift(key, startWord, endWord, endPosition - startPosition);
+        if(shift>1 || shift<0) {
+            throw new IndexOutOfBoundsException("Wrong interpolation function");
+        }
+        return shift;
+    }
+
+    private static double getInterpolationShift(String key, String startWord, String endWord, int range) {
+        int maxLength = max(max(endWord.length(), startWord.length()), key.length());
+        BigInteger end = new BigInteger(1, copyOf(endWord.getBytes(Word.CHARSET), maxLength));
+        BigInteger start = new BigInteger(1, copyOf(startWord.getBytes(Word.CHARSET), maxLength));
+        BigInteger target = new BigInteger(1, copyOf(key.getBytes(Word.CHARSET), maxLength));
+
+        BigInteger divisor = end.subtract(start);
+        return ZERO.equals(divisor) ? 0 : ((target.subtract(start)).doubleValue()/(divisor.doubleValue()));
+        //return (double) key.compareTo(startWord) / (endWord.compareTo(startWord));
     }
 
     private void skip(BufferedInputStream inputStream, long bytes) throws IOException {
@@ -151,7 +197,7 @@ public class SearchEngine {
         do {
             realSkip = inputStream.skip(bytes);
             difference = bytes - realSkip;
-            bytes = (difference>=0) ? difference : bytes;
-        } while(realSkip>0);
+            bytes = (difference >= 0) ? difference : bytes;
+        } while (realSkip > 0);
     }
 }

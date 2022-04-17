@@ -90,6 +90,8 @@ public class Serialization {
     private void writeBlocks(BufferedOutputStream out, int elementsInBlock) throws IOException {
         Word elementPadding = new Word();
         int indexStart = 0;
+        // printout
+        //int counter = 0;
         while(true) {
             if(indexStart>inventory.size())
                 break;
@@ -103,12 +105,17 @@ public class Serialization {
             out.write(blockToWrite.get(blockToWrite.size()-1).getCzechWordBytes());
             writeInteger(out, blockToWrite.size()-1);
             
+            // printout
+            //System.out.println(counter++ + "---------------------------");
+            
             // block elements
             for(int i=0; i<(elementsInBlock); ++i) {
                 Word toWrite = (i>=blockToWrite.size()) ? elementPadding : blockToWrite.get(i);
                 out.write(toWrite.getCzechWordBytes());
                 out.write(toWrite.getEnglishWordBytes());
                 out.write(toWrite.getGermanWordBytes());
+                // printout
+                //System.out.println(new String(toWrite.getCzechWordBytes(), Word.CHARSET));
             }
             
             indexStart += elementsInBlock;
