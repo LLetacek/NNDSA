@@ -45,11 +45,11 @@ public class SearchEngine {
         int index = 0;
 
         while (true) {
-            if (type == SearchType.INTERPOLATION) {
+            /*if (type == SearchType.INTERPOLATION) {
                 String startWord = buffer.get(startPosition).getKey();
                 String endWord = buffer.get(endPosition).getKey();
                 getInterpolationShift(key, startWord, endWord, endPosition - startPosition);
-            }
+            }*/
             index = startPosition + (int) ((endPosition - startPosition) * shift);
             if (key.equals(buffer.get(index).getKey())) {
                 break;
@@ -188,7 +188,7 @@ public class SearchEngine {
 
         BigInteger divisor = end.subtract(start);
         return ZERO.equals(divisor) ? 0 : ((target.subtract(start)).doubleValue()/(divisor.doubleValue()));
-        //return (double) key.compareTo(startWord) / (endWord.compareTo(startWord));
+        //return (double) startWord.compareTo(key) / (startWord.compareTo(endWord));
     }
 
     private void skip(BufferedInputStream inputStream, long bytes) throws IOException {

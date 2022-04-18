@@ -29,12 +29,12 @@ public class Letacek_NNDSA_SemC {
         
         try {
             List<String> listOfWordsToFind = new LinkedList<>();
-            String wordsToFindFile = "./find.txt";
+            String wordsToFindFile = "./find_DavidLe.txt";
             try (Stream<String> file = Files.lines(Paths.get(wordsToFindFile), StandardCharsets.UTF_8)) {
                 file.filter(t -> t != null).forEach(((line) -> { listOfWordsToFind.add(line); }));
             }
             
-            String csvFile = "./main.csv";
+            String csvFile = "./main_DavidLe.csv";
             String outBinaryFile = "./out";
             serialization.buildBaseToBinaryFile(csvFile, outBinaryFile);
             Pair<Integer, Word> finder;
@@ -47,7 +47,9 @@ public class Letacek_NNDSA_SemC {
                 }
             });
             
-            /*testSearch(searchEngine, "kopie", outBinaryFile);
+            /*testSearch(searchEngine, "závěj", outBinaryFile);
+            testSearch(searchEngine, "éro", outBinaryFile);
+            testSearch(searchEngine, "kopie", outBinaryFile);
             testSearch(searchEngine, "abakus", outBinaryFile);
             testSearch(searchEngine, "absurdita", outBinaryFile);
             testSearch(searchEngine, "bezdomovec", outBinaryFile);
