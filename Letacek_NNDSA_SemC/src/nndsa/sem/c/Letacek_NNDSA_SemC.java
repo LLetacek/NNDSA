@@ -42,12 +42,19 @@ public class Letacek_NNDSA_SemC {
             listOfWordsToFind.forEach((t) -> {
                 try {
                     testSearch(searchEngine, t, outBinaryFile);
-                } catch (IOException ex) {
-                    System.err.println(ex.getMessage());
+                } catch (Exception ex) {
+                    System.err.println("ERR: " + t + " -> " + ex.getMessage());
                 }
             });
             
-            /*testSearch(searchEngine, "závěj", outBinaryFile);
+            
+            /*
+            try {
+                testSearch(searchEngine, "abakz", outBinaryFile);
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+            
             testSearch(searchEngine, "éro", outBinaryFile);
             testSearch(searchEngine, "kopie", outBinaryFile);
             testSearch(searchEngine, "abakus", outBinaryFile);

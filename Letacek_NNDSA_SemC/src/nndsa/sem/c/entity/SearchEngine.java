@@ -45,11 +45,11 @@ public class SearchEngine {
         int index = 0;
 
         while (true) {
-            /*if (type == SearchType.INTERPOLATION) {
+            if (type == SearchType.INTERPOLATION) {
                 String startWord = buffer.get(startPosition).getKey();
                 String endWord = buffer.get(endPosition).getKey();
                 getInterpolationShift(key, startWord, endWord, endPosition - startPosition);
-            }*/
+            }
             index = startPosition + (int) ((endPosition - startPosition) * shift);
             if (key.equals(buffer.get(index).getKey())) {
                 break;
@@ -58,6 +58,9 @@ public class SearchEngine {
             } else if (key.compareTo(buffer.get(index).getKey()) < 0) {
                 endPosition = index - 1;
             }
+            
+            if(endPosition<startPosition)
+                throw new IndexOutOfBoundsException("Not found in block!");
         }
         
         return buffer.get(index);
@@ -117,7 +120,7 @@ public class SearchEngine {
                 break;
             }
 
-            if (startPosition == endPosition) {
+            if (startPosition >= endPosition) {
                 throw new IndexOutOfBoundsException("Not found");
             } else if (key.compareTo(startBlockWord) < 0) {
                 // reset -> after mark (in beginning after the head)
@@ -175,7 +178,7 @@ public class SearchEngine {
         mark(inputStream, endPosition, startPosition);
         double shift = getInterpolationShift(key, startWord, endWord, endPosition - startPosition);
         if(shift>1 || shift<0) {
-            throw new IndexOutOfBoundsException("Wrong interpolation function");
+            throw new IndexOutOfBoundsException("Word out of range");
         }
         return shift;
     }
