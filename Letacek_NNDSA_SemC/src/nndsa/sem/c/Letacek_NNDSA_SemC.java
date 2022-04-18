@@ -56,7 +56,7 @@ public class Letacek_NNDSA_SemC {
             testSearch(searchEngine, "mrak", outBinaryFile);*/
             
         } catch(Exception ex) {
-            System.err.println(ex.getMessage());
+            System.err.println("ERR:" + ex.getMessage());
         }
     }
 
