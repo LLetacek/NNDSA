@@ -48,7 +48,7 @@ public class SearchEngine {
             if (type == SearchType.INTERPOLATION) {
                 String startWord = buffer.get(startPosition).getKey();
                 String endWord = buffer.get(endPosition).getKey();
-                getInterpolationShift(key, startWord, endWord, endPosition - startPosition);
+                getInterpolationShift(key, startWord, endWord);
             }
             index = startPosition + (int) ((endPosition - startPosition) * shift);
             if (key.equals(buffer.get(index).getKey())) {
@@ -176,14 +176,14 @@ public class SearchEngine {
         //reset
         inputStream.reset();
         mark(inputStream, endPosition, startPosition);
-        double shift = getInterpolationShift(key, startWord, endWord, endPosition - startPosition);
+        double shift = getInterpolationShift(key, startWord, endWord);
         if(shift>1 || shift<0) {
             throw new IndexOutOfBoundsException("Word out of range");
         }
         return shift;
     }
 
-    private static double getInterpolationShift(String key, String startWord, String endWord, int range) {
+    private static double getInterpolationShift(String key, String startWord, String endWord) {
         int maxLength = max(max(endWord.length(), startWord.length()), key.length());
         BigInteger end = new BigInteger(1, copyOf(endWord.getBytes(Word.CHARSET), maxLength));
         BigInteger start = new BigInteger(1, copyOf(startWord.getBytes(Word.CHARSET), maxLength));
@@ -191,7 +191,6 @@ public class SearchEngine {
 
         BigInteger divisor = end.subtract(start);
         return ZERO.equals(divisor) ? 0 : ((target.subtract(start)).doubleValue()/(divisor.doubleValue()));
-        //return (double) startWord.compareTo(key) / (startWord.compareTo(endWord));
     }
 
     private void skip(BufferedInputStream inputStream, long bytes) throws IOException {
