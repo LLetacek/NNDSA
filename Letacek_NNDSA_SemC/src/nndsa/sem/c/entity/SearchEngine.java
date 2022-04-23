@@ -24,7 +24,7 @@ public class SearchEngine {
     private int sizeOfHeadElementInBytes;
     private int sizeOfUnitedElement;
     private int sizeOfString;
-    private List<Word> buffer;
+    private final List<Word> buffer;
 
     public SearchEngine() {
         numberOfBlocks = 0;
