@@ -79,15 +79,10 @@ public class MainViewController implements Initializable {
         if (file == null) {
             return;
         }
-        
-        List<String> listOfWordsToFind = new LinkedList<>();
-        try (Stream<String> fileStream = Files.lines(file.toPath(), StandardCharsets.UTF_8)) {
-                fileStream.filter(t -> t != null).forEach(((line) -> { listOfWordsToFind.add(line); }));
-        }
 
-        Pair<Integer, Word> finder;
-        listOfWordsToFind.forEach((line) -> { search(line, outBinaryFile); });
-        
+        try (Stream<String> fileStream = Files.lines(file.toPath(), StandardCharsets.UTF_8)) {
+                fileStream.filter(t -> t != null).forEach(((line) -> { search(line, outBinaryFile); }));
+        }
     }
 
     private File getFile(String description, String... extensions) {
