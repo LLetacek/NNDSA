@@ -21,7 +21,7 @@ public class Serialization {
     private List<Word> inventory = new LinkedList<>();
 
     public Serialization() {
-        this(50);
+        this(100);
     }
 
     public Serialization(int elementsInBlock) {
