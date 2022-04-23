@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -97,13 +95,13 @@ public class MainViewController implements Initializable {
     private void search(String word, String outBinaryFile) {
         Pair<Integer, Word> finder;
         try {
-            finder = searchEngine.findInBinaryBase(word, outBinaryFile,SearchType.BINARY);
-            wordStatistics.add("BINARY:\t\t\t" + finder.getKey() + "\t: " + finder.getValue().getKey());
             finder = searchEngine.findInBinaryBase(word, outBinaryFile,SearchType.INTERPOLATION);
             wordStatistics.add("INTERPOLATION:\t" + finder.getKey() + "\t: " + 
                     finder.getValue().getKey() + " | " + 
                     finder.getValue().getEnglishWord() + " | " + 
                     finder.getValue().getGermanWord());
+            finder = searchEngine.findInBinaryBase(word, outBinaryFile,SearchType.BINARY);
+            wordStatistics.add("BINARY:\t\t\t" + finder.getKey() + "\t: " + finder.getValue().getKey());
             wordStatistics.add("------------");
         } catch (Exception ex) {
             wordStatistics.add("ERR: " + word + " -> " + ex.getMessage());
