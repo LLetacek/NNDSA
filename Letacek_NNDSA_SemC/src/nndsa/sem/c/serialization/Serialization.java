@@ -3,8 +3,6 @@ package nndsa.sem.c.serialization;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.nio.ByteBuffer;
 import nndsa.sem.c.entity.Word;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,23 +13,21 @@ import java.util.stream.Stream;
 import javafx.util.Pair;
 import nndsa.sem.c.entity.Block;
 import nndsa.sem.c.entity.BlockHead;
+import nndsa.sem.c.entity.Head;
 /**
  *
  * @author ludek
  */
 public class Serialization {
     private List<Pair<BlockHead,Block>> inventory = new LinkedList<>();
-    private final int elementsInBlock;
-    private int numberOfBlocks;
-    private int sizeOfUnitedElement;
-    private int sizeOfHeadElementInBytes;
+    private Head headOfFile;
     
     public Serialization() {
         this(100);
     }
 
     public Serialization(int elementsInBlock) {
-        this.elementsInBlock = elementsInBlock;
+        this.headOfFile = new Head(elementsInBlock);
     }
     
     public void buildBaseToBinaryFile(String csvFileBase, String binaryFileBase) throws IOException {
@@ -45,15 +41,15 @@ public class Serialization {
             if(indexStart>words.size())
                 break;
             
-            List<Word> blockToWrite = (indexStart + elementsInBlock)<=words.size() ? 
-                    (words.subList(indexStart, indexStart + elementsInBlock)) :
+            List<Word> blockToWrite = (indexStart + headOfFile.getElementsInBlock())<=words.size() ? 
+                    (words.subList(indexStart, indexStart + headOfFile.getElementsInBlock())) :
                     (words.subList(indexStart, words.size()));
             
             BlockHead head = new BlockHead(blockToWrite.get(0), blockToWrite.get(blockToWrite.size()-1), blockToWrite.size()-1);
             Block content = new Block(blockToWrite);
             inventory.add(new Pair<>(head,content));
             
-            indexStart += elementsInBlock;
+            indexStart += headOfFile.getElementsInBlock();
         }
     }
     
@@ -76,9 +72,9 @@ public class Serialization {
             return a.getKey().compareTo(b.getKey());
         });
         
-        numberOfBlocks = (int) Math.ceil((double)words.size()/elementsInBlock);
-        sizeOfUnitedElement = words.get(0).getElementSizeInBytes();
-        sizeOfHeadElementInBytes = 2 * words.get(0).getKeyBytes().length + Integer.BYTES;
+        headOfFile.setNumberOfBlocks((int) Math.ceil((double)words.size()/headOfFile.getElementsInBlock()));
+        headOfFile.setSizeOfUnitedElement(words.get(0).getElementSizeInBytes());
+        headOfFile.setSizeOfHeadElementInBytes(2 * words.get(0).getKeyBytes().length + Integer.BYTES);
         return words;
     }
     
@@ -91,31 +87,17 @@ public class Serialization {
         file = new FileOutputStream(binaryFileBase);
         out = new BufferedOutputStream(file);
         
-        writeHead(out);
+        out.write(headOfFile.toByte());
         writeBlocks(out);
         
         out.close();
         file.close();
-    }
-    
-    private void writeHead(BufferedOutputStream out) throws IOException {
-        byte[] head = new byte[4*Integer.BYTES];
-        System.arraycopy(integerToByteArray(numberOfBlocks), 0, head, 0, Integer.BYTES);
-        System.arraycopy(integerToByteArray(elementsInBlock), 0, head, Integer.BYTES, Integer.BYTES);
-        System.arraycopy(integerToByteArray(sizeOfHeadElementInBytes), 0, head, 2*Integer.BYTES, Integer.BYTES);
-        System.arraycopy(integerToByteArray(sizeOfUnitedElement), 0, head, 3*Integer.BYTES, Integer.BYTES);
-        
-        out.write(head);
-    }
-    
-    private byte[] integerToByteArray(int value) {
-        return ByteBuffer.allocate(Integer.BYTES).putInt(value).array();
-    }
+    }   
 
     private void writeBlocks(BufferedOutputStream out) throws IOException {
         for (Pair<BlockHead, Block> pair : inventory) {
             out.write(pair.getKey().toBytes());
-            out.write(pair.getValue().toBytes(elementsInBlock));
+            out.write(pair.getValue().toBytes(headOfFile.getElementsInBlock()));
         }
     }
 

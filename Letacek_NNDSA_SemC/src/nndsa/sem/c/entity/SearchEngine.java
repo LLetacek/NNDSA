@@ -1,16 +1,12 @@
 package nndsa.sem.c.entity;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import static java.lang.Math.max;
 import java.math.BigInteger;
 import static java.math.BigInteger.ZERO;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import static java.util.Arrays.copyOf;
 import java.util.List;
 import javafx.util.Pair;
@@ -21,19 +17,10 @@ import javafx.util.Pair;
  */
 public class SearchEngine {
 
-    private int numberOfBlocks;
-    private int elementsInBlock;
-    private int sizeOfHeadElementInBytes;
-    private int sizeOfUnitedElement;
-    private int sizeOfString;
+    private Head headOfFile;
     private final List<Word> buffer;
 
     public SearchEngine() {
-        numberOfBlocks = 0;
-        elementsInBlock = 0;
-        sizeOfHeadElementInBytes = 0;
-        sizeOfUnitedElement = 0;
-        sizeOfString = 0;
         buffer = new ArrayList<>();
     }
 
@@ -76,7 +63,7 @@ public class SearchEngine {
         reader = new RandomAccessFile(binaryFileBase,"r");
 
         readHead(reader);
-        int sizeOfBlock = sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement);
+        int sizeOfBlock = headOfFile.getSizeOfHeadElementInBytes() + (headOfFile.getElementsInBlock() * headOfFile.getSizeOfUnitedElement());
 
         counterOfBlockTransfers = findInMedium(type, reader, key, sizeOfBlock);
         
@@ -85,27 +72,17 @@ public class SearchEngine {
     }
 
     private void readHead(RandomAccessFile reader) throws IOException {
-        byte[] head = new byte[4*Integer.BYTES];
-        reader.read(head);
-        numberOfBlocks = readInt(head, 0);
-        elementsInBlock = readInt(head, Integer.BYTES);
-        sizeOfHeadElementInBytes = readInt(head, 2*Integer.BYTES);
-        sizeOfUnitedElement = readInt(head, 3*Integer.BYTES);
-        sizeOfString = (sizeOfHeadElementInBytes - Integer.BYTES) / 2;
-    }
-    
-    private int readInt(byte[] bytes, int from) {
-        return ByteBuffer.wrap(Arrays.copyOfRange(bytes, from, from + Integer.BYTES)).getInt();
+        byte[] headInByte = new byte[4*Integer.BYTES];
+        reader.read(headInByte);
+        headOfFile = new Head(headInByte);
     }
 
     private int findInMedium(SearchType type, RandomAccessFile reader, String key, int sizeOfBlock) throws IndexOutOfBoundsException, IOException {
-        int endPosition = numberOfBlocks - 1;
+        int endPosition = headOfFile.getNumberOfBlocks() - 1;
         int startPosition = 0;
         int counterOfBlockTransfers = 0;
         int shiftPosition = 0;
         double shift;
-        String startBlockWord;
-        String endBlockWord;
         long markPosition;
         BlockHead head;
         while (true) {
@@ -137,7 +114,7 @@ public class SearchEngine {
                 endPosition = startPosition + shiftPosition - 1;
             } else if (head.getLastWord().compareTo(key) < 0) {
                 // finish reading element's head + block
-                reader.seek(reader.getFilePointer() + (elementsInBlock * sizeOfUnitedElement));
+                reader.seek(reader.getFilePointer() + (headOfFile.getElementsInBlock() * headOfFile.getSizeOfUnitedElement()));
                 startPosition = startPosition + shiftPosition + 1;
             }
         }
@@ -147,14 +124,14 @@ public class SearchEngine {
 
     private void loadBlock(RandomAccessFile reader, int lastValidWord) throws IOException {
         buffer.clear();
-        byte[] blockInBytes = new byte[(lastValidWord+1) * sizeOfUnitedElement];
+        byte[] blockInBytes = new byte[(lastValidWord+1) * headOfFile.getSizeOfUnitedElement()];
         reader.read(blockInBytes);
-        Block block = new Block(blockInBytes, sizeOfUnitedElement);
+        Block block = new Block(blockInBytes, headOfFile.getSizeOfUnitedElement());
         buffer.addAll(block.getElements());
     }
     
     private BlockHead getBlockHead(RandomAccessFile reader) throws IOException {
-        byte[] headInBytes = new byte[sizeOfHeadElementInBytes];
+        byte[] headInBytes = new byte[headOfFile.getSizeOfHeadElementInBytes()];
         reader.read(headInBytes);
         return new BlockHead(headInBytes);
     }
@@ -165,7 +142,7 @@ public class SearchEngine {
         BlockHead head = getBlockHead(reader);
         String startWord = head.getFirstWord();
         // read end of the range
-        reader.seek(markPosition + (endPosition - startPosition) * (sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement)));
+        reader.seek(markPosition + (endPosition - startPosition) * (headOfFile.getSizeOfHeadElementInBytes() + (headOfFile.getElementsInBlock() * headOfFile.getSizeOfUnitedElement())));
         head = getBlockHead(reader);
         String endWord = head.getLastWord();
         // reset
