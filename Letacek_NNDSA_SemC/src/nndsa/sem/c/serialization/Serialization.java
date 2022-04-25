@@ -12,14 +12,20 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
+import javafx.util.Pair;
+import nndsa.sem.c.entity.Block;
+import nndsa.sem.c.entity.BlockHead;
 /**
  *
  * @author ludek
  */
 public class Serialization {
+    private List<Pair<BlockHead,Block>> inventory = new LinkedList<>();
     private final int elementsInBlock;
-    private List<Word> inventory = new LinkedList<>();
-
+    private int numberOfBlocks;
+    private int sizeOfUnitedElement;
+    private int sizeOfHeadElementInBytes;
+    
     public Serialization() {
         this(100);
     }
@@ -29,12 +35,30 @@ public class Serialization {
     }
     
     public void buildBaseToBinaryFile(String csvFileBase, String binaryFileBase) throws IOException {
-        loadBase(csvFileBase);
+        List<Word> words = loadBaseToList(csvFileBase);
+        createBlocks(words);
         saveBase(binaryFileBase);
     }
+    private void createBlocks(List<Word> words) {
+        int indexStart = 0;
+        while(true) {
+            if(indexStart>words.size())
+                break;
+            
+            List<Word> blockToWrite = (indexStart + elementsInBlock)<=words.size() ? 
+                    (words.subList(indexStart, indexStart + elementsInBlock)) :
+                    (words.subList(indexStart, words.size()));
+            
+            BlockHead head = new BlockHead(blockToWrite.get(0), blockToWrite.get(blockToWrite.size()-1), blockToWrite.size()-1);
+            Block content = new Block(blockToWrite);
+            inventory.add(new Pair<>(head,content));
+            
+            indexStart += elementsInBlock;
+        }
+    }
     
-    private void loadBase(String csvFileBase) throws IOException {
-        inventory = new LinkedList<>();
+    private List<Word> loadBaseToList(String csvFileBase) throws IOException {
+        List<Word> words = new LinkedList<>();
         try (Stream<String> file = Files.lines(Paths.get(csvFileBase), StandardCharsets.UTF_8)) {
             file.filter(t -> t != null)
                     .map((String line) -> {
@@ -44,13 +68,18 @@ public class Serialization {
                         return new Word(parse[0], parse[1], parse[2]);
                     })
                     .forEach(((entity) -> {
-                        inventory.add(entity);
+                        words.add(entity);
                     }));
         }
         
-        inventory.sort((a, b) -> {
+        words.sort((a, b) -> {
             return a.getKey().compareTo(b.getKey());
         });
+        
+        numberOfBlocks = (int) Math.ceil((double)words.size()/elementsInBlock);
+        sizeOfUnitedElement = words.get(0).getElementSizeInBytes();
+        sizeOfHeadElementInBytes = 2 * words.get(0).getKeyBytes().length + Integer.BYTES;
+        return words;
     }
     
     private void saveBase(String binaryFileBase) throws IOException {
@@ -62,65 +91,32 @@ public class Serialization {
         file = new FileOutputStream(binaryFileBase);
         out = new BufferedOutputStream(file);
         
-        int elementsInBlock = this.elementsInBlock;
-        writeHead(out, elementsInBlock);
-        writeBlocks(out, elementsInBlock);
+        writeHead(out);
+        writeBlocks(out);
         
         out.close();
         file.close();
     }
     
-    private void writeInteger(BufferedOutputStream out, int value) throws IOException {
-        byte[] bytes = ByteBuffer.allocate(Integer.BYTES).putInt(value).array();
-        out.write(bytes);
+    private void writeHead(BufferedOutputStream out) throws IOException {
+        byte[] head = new byte[4*Integer.BYTES];
+        System.arraycopy(integerToByteArray(numberOfBlocks), 0, head, 0, Integer.BYTES);
+        System.arraycopy(integerToByteArray(elementsInBlock), 0, head, Integer.BYTES, Integer.BYTES);
+        System.arraycopy(integerToByteArray(sizeOfHeadElementInBytes), 0, head, 2*Integer.BYTES, Integer.BYTES);
+        System.arraycopy(integerToByteArray(sizeOfUnitedElement), 0, head, 3*Integer.BYTES, Integer.BYTES);
+        
+        out.write(head);
     }
     
-    private void writeHead(BufferedOutputStream out, int elementsInBlock) throws IOException {
-        int numberOfBlocks = (int) Math.ceil((double)inventory.size()/elementsInBlock);
-        int sizeOfUnitedElement = inventory.get(0).getElementSizeInBytes();
-        int sizeOfHeadElementInBytes = 2 * inventory.get(0).getCzechWordBytes().length + Integer.BYTES;
-        
-        // head
-        writeInteger(out, numberOfBlocks);
-        writeInteger(out, elementsInBlock);
-        writeInteger(out, sizeOfHeadElementInBytes);
-        writeInteger(out, sizeOfUnitedElement);
+    private byte[] integerToByteArray(int value) {
+        return ByteBuffer.allocate(Integer.BYTES).putInt(value).array();
     }
 
-    private void writeBlocks(BufferedOutputStream out, int elementsInBlock) throws IOException {
-        Word elementPadding = new Word();
-        int indexStart = 0;
-        // printout
-        //int counter = 0;
-        while(true) {
-            if(indexStart>inventory.size())
-                break;
-            
-            List<Word> blockToWrite = (indexStart + elementsInBlock)<=inventory.size() ? 
-                    (inventory.subList(indexStart, indexStart + elementsInBlock)) :
-                    (inventory.subList(indexStart, inventory.size()));
-            
-            // block head - first word - last word - id of last word
-            out.write(blockToWrite.get(0).getCzechWordBytes());
-            out.write(blockToWrite.get(blockToWrite.size()-1).getCzechWordBytes());
-            writeInteger(out, blockToWrite.size()-1);
-            
-            // printout
-            //System.out.println(counter++ + "---------------------------");
-            
-            // block elements
-            for(int i=0; i<(elementsInBlock); ++i) {
-                Word toWrite = (i>=blockToWrite.size()) ? elementPadding : blockToWrite.get(i);
-                out.write(toWrite.getCzechWordBytes());
-                out.write(toWrite.getEnglishWordBytes());
-                out.write(toWrite.getGermanWordBytes());
-                // printout
-                //System.out.println(new String(toWrite.getCzechWordBytes(), Word.CHARSET));
-            }
-            
-            indexStart += elementsInBlock;
+    private void writeBlocks(BufferedOutputStream out) throws IOException {
+        for (Pair<BlockHead, Block> pair : inventory) {
+            out.write(pair.getKey().toBytes());
+            out.write(pair.getValue().toBytes(elementsInBlock));
         }
     }
 
-    
 }

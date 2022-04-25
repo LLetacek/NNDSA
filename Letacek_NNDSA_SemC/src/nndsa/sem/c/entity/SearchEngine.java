@@ -8,7 +8,9 @@ import java.io.RandomAccessFile;
 import static java.lang.Math.max;
 import java.math.BigInteger;
 import static java.math.BigInteger.ZERO;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import static java.util.Arrays.copyOf;
 import java.util.List;
 import javafx.util.Pair;
@@ -76,22 +78,27 @@ public class SearchEngine {
         readHead(reader);
         int sizeOfBlock = sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement);
 
-        counterOfBlockTransfers = findInBlock(type, reader, key, sizeOfBlock);
-        loadBlock(reader);
-
+        counterOfBlockTransfers = findInMedium(type, reader, key, sizeOfBlock);
+        
         reader.close();
         return new Pair<>(counterOfBlockTransfers, getWord(key, type));
     }
 
     private void readHead(RandomAccessFile reader) throws IOException {
-        numberOfBlocks = reader.readInt();
-        elementsInBlock = reader.readInt();
-        sizeOfHeadElementInBytes = reader.readInt();
-        sizeOfUnitedElement = reader.readInt();
+        byte[] head = new byte[4*Integer.BYTES];
+        reader.read(head);
+        numberOfBlocks = readInt(head, 0);
+        elementsInBlock = readInt(head, Integer.BYTES);
+        sizeOfHeadElementInBytes = readInt(head, 2*Integer.BYTES);
+        sizeOfUnitedElement = readInt(head, 3*Integer.BYTES);
         sizeOfString = (sizeOfHeadElementInBytes - Integer.BYTES) / 2;
     }
+    
+    private int readInt(byte[] bytes, int from) {
+        return ByteBuffer.wrap(Arrays.copyOfRange(bytes, from, from + Integer.BYTES)).getInt();
+    }
 
-    private int findInBlock(SearchType type, RandomAccessFile reader, String key, int sizeOfBlock) throws IndexOutOfBoundsException, IOException {
+    private int findInMedium(SearchType type, RandomAccessFile reader, String key, int sizeOfBlock) throws IndexOutOfBoundsException, IOException {
         int endPosition = numberOfBlocks - 1;
         int startPosition = 0;
         int counterOfBlockTransfers = 0;
@@ -100,6 +107,7 @@ public class SearchEngine {
         String startBlockWord;
         String endBlockWord;
         long markPosition;
+        BlockHead head;
         while (true) {
             markPosition = reader.getFilePointer();
             shift = (type == SearchType.BINARY)
@@ -111,50 +119,51 @@ public class SearchEngine {
 
             // check of block
             ++counterOfBlockTransfers;
-            startBlockWord = readWord(reader);
-            endBlockWord = readWord(reader);
-            if (startBlockWord.compareTo(key) <= 0 && key.compareTo(endBlockWord) <= 0) {
+            head = getBlockHead(reader);
+            
+            if (head.getFirstWord().compareTo(key) <= 0 && key.compareTo(head.getLastWord()) <= 0) {
                 break;
             }
 
             if (startPosition >= endPosition) {
                 throw new IndexOutOfBoundsException("Not found");
-            } else if (key.compareTo(startBlockWord) < 0) {
+            } else if (key.compareTo(head.getFirstWord()) < 0) {
                 // reset -> after mark
                 reader.seek(markPosition);
                 endPosition = startPosition + shiftPosition - 1;
-            } else if (endBlockWord.compareTo(key) < 0) {
+            } else if (head.getLastWord().compareTo(key) < 0) {
                 // finish reading element's head + block
-                reader.seek(reader.getFilePointer() + (Integer.BYTES + (elementsInBlock * sizeOfUnitedElement)));
+                reader.seek(reader.getFilePointer() + (elementsInBlock * sizeOfUnitedElement));
                 startPosition = startPosition + shiftPosition + 1;
             }
         }
+        loadBlock(reader, head.getPositionOfLastWordInBlock());
         return counterOfBlockTransfers;
     }
 
-    private void loadBlock(RandomAccessFile reader) throws IOException {
+    private void loadBlock(RandomAccessFile reader, int lastValidWord) throws IOException {
         buffer.clear();
-        int endPosition = reader.readInt();
-
-        for (int i = 0; i <= endPosition; ++i) {
-            buffer.add(new Word(readWord(reader), readWord(reader), readWord(reader)));
-        }
+        byte[] blockInBytes = new byte[(lastValidWord+1) * sizeOfUnitedElement];
+        reader.read(blockInBytes);
+        Block block = new Block(blockInBytes, sizeOfUnitedElement);
+        buffer.addAll(block.getElements());
     }
-
-    private String readWord(RandomAccessFile reader) throws IOException {
-        byte[] value = new byte[sizeOfString];
-        reader.read(value);
-        return (new String(value, Word.CHARSET)).trim();
+    
+    private BlockHead getBlockHead(RandomAccessFile reader) throws IOException {
+        byte[] headInBytes = new byte[sizeOfHeadElementInBytes];
+        reader.read(headInBytes);
+        return new BlockHead(headInBytes);
     }
 
     private double calculateShiftPosition(RandomAccessFile reader, String key, int startPosition, int endPosition) throws IOException {
         long markPosition = reader.getFilePointer();
         // read beginning of the range
-        String startWord = readWord(reader);
+        BlockHead head = getBlockHead(reader);
+        String startWord = head.getFirstWord();
         // read end of the range
         reader.seek(markPosition + (endPosition - startPosition) * (sizeOfHeadElementInBytes + (elementsInBlock * sizeOfUnitedElement)));
-        readWord(reader);
-        String endWord = readWord(reader);
+        head = getBlockHead(reader);
+        String endWord = head.getLastWord();
         // reset
         reader.seek(markPosition);
         double shift = getInterpolationShift(key, startWord, endWord);

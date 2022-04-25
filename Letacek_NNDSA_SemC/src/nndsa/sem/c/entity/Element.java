@@ -9,5 +9,6 @@ public interface Element<T> {
     
     T getKey();
     int getElementSizeInBytes();
-    
+    byte[] getKeyBytes();
+    byte[] getWordInBytes();
 }

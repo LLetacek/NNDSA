@@ -1,5 +1,6 @@
 package nndsa.sem.c.entity;
 
+import java.util.Arrays;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -25,6 +26,13 @@ public class Word implements Element<String> {
         this.englishWord = englishWord;
         this.germanWord = germanWord;
     }
+    
+    public Word(byte[] input) {
+        int lengthByWord = input.length/3;
+        this.czechWord = (new String(Arrays.copyOfRange(input, 0, lengthByWord), CHARSET)).trim();
+        this.englishWord = (new String(Arrays.copyOfRange(input, lengthByWord, 2*lengthByWord), CHARSET)).trim();
+        this.germanWord = (new String(Arrays.copyOfRange(input, 2*lengthByWord, input.length), CHARSET)).trim();
+    }
 
     public String getCzechWord() {
         return czechWord;
@@ -38,16 +46,8 @@ public class Word implements Element<String> {
         return germanWord;
     }
     
-    public byte[] getCzechWordBytes() {
-        return padding(czechWord).getBytes(CHARSET);
-    }
-
-    public byte[] getEnglishWordBytes() {
-        return padding(englishWord).getBytes(CHARSET);
-    }
-
-    public byte[] getGermanWordBytes() {
-        return padding(germanWord).getBytes(CHARSET);
+    private byte[] getStringInBytes(String word) {
+        return padding(word).getBytes(CHARSET);
     }
 
     private String padding(String word) {
@@ -61,8 +61,22 @@ public class Word implements Element<String> {
 
     @Override
     public int getElementSizeInBytes() {
-        return getCzechWordBytes().length + getEnglishWordBytes().length + getGermanWordBytes().length;
+        return getWordInBytes().length;
     }
     
+    @Override
+    public byte[] getKeyBytes() {
+        return getStringInBytes(getKey());
+    }
+    
+    @Override
+    public byte[] getWordInBytes() {
+        int stringLength = getStringInBytes(czechWord).length;
+        byte[] bytes = new byte[stringLength * 3];
+        System.arraycopy(getStringInBytes(czechWord), 0, bytes, 0, stringLength);
+        System.arraycopy(getStringInBytes(englishWord), 0, bytes, stringLength, stringLength);
+        System.arraycopy(getStringInBytes(germanWord), 0, bytes, 2*stringLength, stringLength);
+        return bytes;
+    }
     
 }
