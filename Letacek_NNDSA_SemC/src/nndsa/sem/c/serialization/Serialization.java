@@ -35,6 +35,7 @@ public class Serialization {
         createBlocks(words);
         saveBase(binaryFileBase);
     }
+    
     private void createBlocks(List<Word> words) {
         int indexStart = 0;
         while(true) {
