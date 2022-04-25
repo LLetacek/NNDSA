@@ -114,6 +114,10 @@ public class SearchEngine {
                     ? (double) 1 / 2
                     : calculateShiftPosition(reader, key, startPosition, endPosition);
 
+            if(type == SearchType.INTERPOLATION) {
+                counterOfBlockTransfers += 2;
+            }
+            
             shiftPosition = (int) ((endPosition - startPosition) * shift);
             reader.seek(reader.getFilePointer() + (shiftPosition * sizeOfBlock));
 
