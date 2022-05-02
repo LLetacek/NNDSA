@@ -31,6 +31,7 @@ public class Serialization {
     }
     
     public void buildBaseToBinaryFile(String csvFileBase, String binaryFileBase) throws IOException {
+        inventory.clear();
         List<Word> words = loadBaseToList(csvFileBase);
         createBlocks(words);
         saveBase(binaryFileBase);
